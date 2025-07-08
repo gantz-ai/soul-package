@@ -1,0 +1,10 @@
+{
+  "name": "http",
+  "version": "1.0.0", 
+  "description": "Soul http library",
+  "main": "index.soul",
+  "dependencies": {},
+  "scripts": {},
+  "keywords": ["http", "library"],
+  "license": "MIT"
+}

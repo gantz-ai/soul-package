@@ -1,0 +1,10 @@
+{
+  "name": "file",
+  "version": "1.0.0", 
+  "description": "Soul file library",
+  "main": "index.soul",
+  "dependencies": {},
+  "scripts": {},
+  "keywords": ["file", "library"],
+  "license": "MIT"
+}

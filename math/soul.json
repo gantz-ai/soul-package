@@ -1,0 +1,10 @@
+{
+  "name": "math",
+  "version": "1.0.0", 
+  "description": "Soul math library",
+  "main": "index.soul",
+  "dependencies": {},
+  "scripts": {},
+  "keywords": ["math", "library"],
+  "license": "MIT"
+}

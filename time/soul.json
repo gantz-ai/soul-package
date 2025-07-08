@@ -1,0 +1,10 @@
+{
+  "name": "time",
+  "version": "1.0.0", 
+  "description": "Soul time library",
+  "main": "index.soul",
+  "dependencies": {},
+  "scripts": {},
+  "keywords": ["time", "library"],
+  "license": "MIT"
+}

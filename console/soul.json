@@ -1,0 +1,10 @@
+{
+  "name": "console",
+  "version": "1.0.0", 
+  "description": "Soul console library",
+  "main": "index.soul",
+  "dependencies": {},
+  "scripts": {},
+  "keywords": ["console", "library"],
+  "license": "MIT"
+}

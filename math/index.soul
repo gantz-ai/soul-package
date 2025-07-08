@@ -1,0 +1,54 @@
+// Built-in Math library wrapping math module
+static sanctuary Math {
+    soul abs(n) {
+        return math.abs(n)
+    }
+    
+    soul max(a, b) {
+        return math.max(a, b)
+    }
+    
+    soul min(a, b) {
+        return math.min(a, b)
+    }
+    
+    soul cos(n) {
+        return math.cos(n)
+    }
+    
+    soul sin(n) {
+        return math.sin(n)
+    }
+    
+    soul tan(n) {
+        return math.tan(n)
+    }
+    
+    soul isNegative(n) {
+        return math.isNegative(n)
+    }
+    
+    soul isPositive(n) {
+        return math.isPositive(n)
+    }
+    
+    soul isZero(n) {
+        return math.isZero(n)
+    }
+    
+    soul pi() {
+        return math.pi
+    }
+    
+    soul e() {
+        return math.e
+    }
+    
+    soul random() {
+        return random.random()
+    }
+    
+    soul randomSeed(seed) {
+        return random.seed(seed)
+    }
+}

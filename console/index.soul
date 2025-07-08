@@ -1,0 +1,38 @@
+// Built-in Console library wrapping console module
+static sanctuary Console {
+    soul log(message) {
+        console.log(message)
+    }
+    
+    soul error(message) {
+        console.error(message)
+    }
+    
+    soul warn(message) {
+        console.warn(message)
+    }
+    
+    soul info(message) {
+        console.info(message)
+    }
+    
+    soul debug(message) {
+        console.debug(message)
+    }
+    
+    soul clear() {
+        console.clear()
+    }
+    
+    soul read(prompt) {
+        return console.read(prompt)
+    }
+    
+    soul print(message) {
+        console.print(message)
+    }
+    
+    soul newLine() {
+        console.newLine()
+    }
+}

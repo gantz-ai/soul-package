@@ -1,0 +1,14 @@
+// Built-in File library wrapping io module
+static sanctuary File {
+    soul read(path) {
+        return io.read(path)
+    }
+    
+    soul write(path, content) {
+        return io.write(path, content)
+    }
+    
+    soul append(path, content) {
+        return io.append(path, content)
+    }
+}
