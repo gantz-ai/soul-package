@@ -1,4 +1,6 @@
 // Built-in Math library wrapping math module
+// Using static sanctuary for direct method access
+
 static sanctuary Math {
     soul abs(n) {
         return math.abs(n)
