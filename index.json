@@ -1,0 +1,123 @@
+{
+  "categories": {
+    "io": {
+      "name": "Input/Output Operations",
+      "description": "Packages for console and file operations",
+      "path": "io/"
+    },
+    "network": {
+      "name": "Network Operations", 
+      "description": "Packages for HTTP and network communication",
+      "path": "network/"
+    },
+    "data": {
+      "name": "Data Processing",
+      "description": "Packages for data manipulation and processing", 
+      "path": "data/"
+    },
+    "utility": {
+      "name": "Utility Functions",
+      "description": "Common utility packages for mathematical operations and time handling",
+      "path": "utility/"
+    }
+  },
+  "packages": {
+    "console": {
+      "category": "io",
+      "description": "Soul console library",
+      "keywords": ["console", "library"],
+      "versions": {
+        "1.0.0": {
+          "path": "io/console/1.0.0/",
+          "main": "index.soul",
+          "dependencies": {},
+          "license": "MIT",
+          "description": "Basic console operations"
+        },
+        "2.0.0": {
+          "path": "io/console/2.0.0/",
+          "main": "index.soul", 
+          "dependencies": {},
+          "license": "MIT",
+          "description": "Enhanced console with color and formatting support",
+          "changelog": [
+            "Added color support with logColor, success, failure methods",
+            "Added formatted output with logFormat and table methods",
+            "Backward compatible with v1.0.0"
+          ]
+        }
+      },
+      "latest": "2.0.0"
+    },
+    "file": {
+      "category": "io",
+      "description": "Soul file library", 
+      "keywords": ["file", "library"],
+      "versions": {
+        "1.0.0": {
+          "path": "io/file/1.0.0/",
+          "main": "index.soul",
+          "dependencies": {},
+          "license": "MIT"
+        }
+      },
+      "latest": "1.0.0"
+    },
+    "http": {
+      "category": "network",
+      "description": "Soul http library",
+      "keywords": ["http", "library"],
+      "versions": {
+        "1.0.0": {
+          "path": "network/http/1.0.0/",
+          "main": "index.soul", 
+          "dependencies": {},
+          "license": "MIT"
+        }
+      },
+      "latest": "1.0.0"
+    },
+    "json": {
+      "category": "data",
+      "description": "Soul json library",
+      "keywords": ["json", "library"],
+      "versions": {
+        "1.0.0": {
+          "path": "data/json/1.0.0/",
+          "main": "index.soul",
+          "dependencies": {},
+          "license": "MIT"
+        }
+      },
+      "latest": "1.0.0"
+    },
+    "math": {
+      "category": "utility",
+      "description": "Soul math library",
+      "keywords": ["math", "library"],
+      "versions": {
+        "1.0.0": {
+          "path": "utility/math/1.0.0/",
+          "main": "index.soul",
+          "dependencies": {},
+          "license": "MIT"
+        }
+      },
+      "latest": "1.0.0"
+    },
+    "time": {
+      "category": "utility",
+      "description": "Soul time library",
+      "keywords": ["time", "library"],
+      "versions": {
+        "1.0.0": {
+          "path": "utility/time/1.0.0/",
+          "main": "index.soul",
+          "dependencies": {},
+          "license": "MIT"
+        }
+      },
+      "latest": "1.0.0"
+    }
+  }
+}
