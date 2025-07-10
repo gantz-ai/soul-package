@@ -130,7 +130,7 @@
       "keywords": ["web", "framework", "mvc", "middleware", "routing", "api", "server"],
       "versions": {
         "1.0.0": {
-          "path": "framework/jet/",
+          "path": "framework/jet/1.0.0/",
           "main": "index.soul",
           "dependencies": {
             "console": "^1.0.0",
