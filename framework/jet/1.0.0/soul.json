@@ -22,29 +22,19 @@
     "url": "https://github.com/soul-lang/packages"
   },
   "dependencies": {
-    "console": "^1.0.0",
+    "console": ">=1.0.0",
     "http": "^1.0.0",
     "time": "^1.0.0"
   },
   "engines": {
     "soul": ">=1.0.0"
   },
-  "files": [
-    "index.soul",
-    "core/",
-    "router/",
-    "middleware/",
-    "utils/"
-  ],
+  "files": ["index.soul", "core/", "router/", "middleware/", "utils/"],
   "scripts": {
     "test": "soul test",
     "example": "soul run examples/server.soul"
   },
-  "categories": [
-    "web",
-    "framework",
-    "server"
-  ],
+  "categories": ["web", "framework", "server"],
   "features": [
     "MVC Architecture",
     "Middleware Support",
