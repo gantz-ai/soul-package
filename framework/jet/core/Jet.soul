@@ -1,0 +1,278 @@
+// Core Jet Framework Class
+// Main application class with essential functionality
+
+import { Console } from "console"
+import { Router } from "../router/Router.soul"
+import { MiddlewareManager } from "../middleware/MiddlewareManager.soul"
+
+sanctuary Jet {
+    soul __genesis__(port) {
+        if (port) {
+            this.port = port
+        } else {
+            this.port = 8888
+        }
+        
+        // Core properties
+        this.server = null
+        this.startTime = null
+        
+        // Component managers
+        this.router = Router.new()
+        this.middlewareManager = MiddlewareManager.new()
+        
+        // Settings
+        this.settings = {
+            env: "development",
+            trustProxy: false,
+            jsonLimit: "10mb",
+            urlEncoded: true
+        }
+        
+        // Enhanced architecture components
+        this.controllers = {}
+        this.services = {}
+        this.repositories = {}
+        this.models = {}
+        this.config = {}
+        
+        // Performance tracking
+        this.performance = {
+            startTime: 0,
+            requests: 0,
+            errors: 0,
+            avgResponseTime: 0
+        }
+        
+        // Initialize logger
+        this.initializeLogger()
+    }
+
+    // Initialize logger
+    soul initializeLogger() {
+        this.logger = {
+            info: soul(message) { Console.log("[INFO] " + message) },
+            warn: soul(message) { Console.log("[WARN] " + message) },
+            error: soul(message) { Console.log("[ERROR] " + message) },
+            debug: soul(message) { 
+                if (this.settings.env == "development") {
+                    Console.log("[DEBUG] " + message)
+                }
+            }
+        }
+    }
+
+    // Configuration methods
+    soul set(key, value) {
+        this.settings[key] = value
+        return this
+    }
+
+    soul get(key) {
+        return this.settings[key]
+    }
+    
+    // Method to set start time
+    soul setStartTime(timestamp) {
+        this.startTime = timestamp
+        return this
+    }
+
+    soul env(environment) {
+        this.settings.env = environment
+        return this
+    }
+
+    soul trust(proxy) {
+        this.settings.trustProxy = proxy
+        return this
+    }
+    
+    // Enhanced architecture registration methods
+    soul registerController(name, controller) {
+        this.controllers[name] = controller
+        if (controller.setApp) {
+            controller.setApp(this)
+        }
+        return this
+    }
+    
+    soul registerService(name, service) {
+        this.services[name] = service
+        if (service.setApp) {
+            service.setApp(this)
+        }
+        return this
+    }
+    
+    soul registerRepository(name, repository) {
+        this.repositories[name] = repository
+        if (repository.setApp) {
+            repository.setApp(this)
+        }
+        return this
+    }
+    
+    soul registerModel(name, model) {
+        this.models[name] = model
+        return this
+    }
+    
+    soul getController(name) {
+        return this.controllers[name]
+    }
+    
+    soul getService(name) {
+        return this.services[name]
+    }
+    
+    soul getRepository(name) {
+        return this.repositories[name]
+    }
+    
+    soul getModel(name) {
+        return this.models[name]
+    }
+
+    // Middleware delegation
+    soul use(middleware) {
+        return this.middlewareManager.use(middleware, null, this)
+    }
+
+    // Advanced middleware methods
+    soul cors(options) {
+        return this.middlewareManager.cors(options, this)
+    }
+
+    soul helmet(options) {
+        return this.middlewareManager.helmet(options, this)
+    }
+
+    soul compression(options) {
+        return this.middlewareManager.compression(options, this)
+    }
+
+    soul rateLimit(options) {
+        return this.middlewareManager.rateLimit(options, this)
+    }
+
+    soul auth(strategy, options) {
+        return this.middlewareManager.auth(strategy, options, this)
+    }
+
+    soul static(path, options) {
+        return this.middlewareManager.static(path, options, this)
+    }
+
+    soul error(handler) {
+        return this.middlewareManager.error(handler, this)
+    }
+
+    // Route delegation
+    soul route(method, path, handlers) {
+        return this.router.route(method, path, handlers, this)
+    }
+
+    // HTTP method shortcuts
+    soul get(path, handlers) {
+        return this.route("GET", path, handlers)
+    }
+
+    soul post(path, handlers) {
+        return this.route("POST", path, handlers)
+    }
+
+    soul put(path, handlers) {
+        return this.route("PUT", path, handlers)
+    }
+
+    soul patch(path, handlers) {
+        return this.route("PATCH", path, handlers)
+    }
+
+    soul delete(path, handlers) {
+        return this.route("DELETE", path, handlers)
+    }
+
+    soul options(path, handlers) {
+        return this.route("OPTIONS", path, handlers)
+    }
+
+    soul head(path, handlers) {
+        return this.route("HEAD", path, handlers)
+    }
+
+    soul all(path, handlers) {
+        methods = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"]
+        for (i = 0; i < methods.length(); i = i + 1) {
+            this.route(methods[i], path, handlers)
+        }
+        return this
+    }
+    
+    // Enhanced routing with controller integration
+    soul controller(controllerName, methodName) {
+        return soul(req, res, next) {
+            controller = this.getController(controllerName)
+            if (!controller) {
+                return res.status(500).json({
+                    error: "Internal Server Error",
+                    message: "Controller '" + controllerName + "' not found"
+                })
+            }
+            
+            if (!controller[methodName]) {
+                return res.status(500).json({
+                    error: "Internal Server Error", 
+                    message: "Method '" + methodName + "' not found in controller '" + controllerName + "'"
+                })
+            }
+            
+            // Call controller method
+            controller[methodName](req, res, next)
+        }
+    }
+
+    // Server lifecycle
+    soul listen(callback) {
+        // Create the actual HTTP server using built-in http module
+        this.server = http.createServer(this.port)
+        app = this
+        
+        // Register routes directly with the HTTP server
+        this.router.registerRoutes(this.server)
+        
+        this.logger.info("🚀 Jet server starting on port " + this.port)
+        this.logger.info("📍 Environment: " + this.settings.env)
+        this.logger.info("🌐 Visit: http://localhost:" + this.port)
+        
+        if (callback) {
+            callback()
+        }
+        
+        // Start server and keep it running (this blocks)
+        this.server.listen()
+        
+        return this
+    }
+
+    // Health check
+    soul health() {
+        return {
+            status: "healthy",
+            uptime: time.now() - this.startTime,
+            requests: this.performance.requests,
+            errors: this.performance.errors,
+            avgResponseTime: this.performance.avgResponseTime,
+            version: "1.0.0"
+        }
+    }
+}
+
+// Factory function to create Jet instances
+soul createJet(port) {
+    Console.log("createJet called with port: " + port)
+    instance = Jet.new(port)
+    Console.log("Jet.new completed successfully")
+    return instance
+}

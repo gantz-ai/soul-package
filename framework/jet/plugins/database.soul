@@ -1,0 +1,623 @@
+// Jet Framework - Database Plugin
+// Database abstraction layer with multiple adapters
+
+// Database Plugin Class
+sanctuary DatabasePlugin {
+    soul constructor() {
+        this.adapters = {}
+        this.connections = {}
+        this.config = {}
+        this.models = {}
+        this.migrations = []
+        this.queryBuilder = null
+        
+        this.setupDefaultAdapters()
+    }
+    
+    // Install plugin
+    soul install(app, options) {
+        if (options) {
+            this.config = { ...this.config, ...options }
+        }
+        
+        app.db = this
+        
+        // Add database methods to app
+        app.model = soul(name, schema) {
+            return this.createModel(name, schema)
+        }
+        
+        app.migrate = soul() {
+            return this.runMigrations()
+        }
+        
+        app.seed = soul(data) {
+            return this.seedData(data)
+        }
+        
+        // Auto-connect if config provided
+        if (this.config.autoConnect) {
+            this.connect(this.config.default)
+        }
+    }
+    
+    // Setup default database adapters
+    soul setupDefaultAdapters() {
+        // SQLite Adapter
+        this.adapters.sqlite = {
+            connect: soul(config) {
+                // This would use the SQLite module
+                return {
+                    type: "sqlite",
+                    database: config.database or "app.db",
+                    connected: true
+                }
+            },
+            
+            query: soul(connection, sql, params) {
+                // Execute SQL query
+                return { rows: [], affectedRows: 0 }
+            },
+            
+            close: soul(connection) {
+                connection.connected = false
+            }
+        }
+        
+        // MySQL Adapter
+        this.adapters.mysql = {
+            connect: soul(config) {
+                return {
+                    type: "mysql",
+                    host: config.host or "localhost",
+                    port: config.port or 3306,
+                    user: config.user,
+                    password: config.password,
+                    database: config.database,
+                    connected: true
+                }
+            },
+            
+            query: soul(connection, sql, params) {
+                return { rows: [], affectedRows: 0 }
+            },
+            
+            close: soul(connection) {
+                connection.connected = false
+            }
+        }
+        
+        // PostgreSQL Adapter
+        this.adapters.postgres = {
+            connect: soul(config) {
+                return {
+                    type: "postgres",
+                    host: config.host or "localhost",
+                    port: config.port or 5432,
+                    user: config.user,
+                    password: config.password,
+                    database: config.database,
+                    connected: true
+                }
+            },
+            
+            query: soul(connection, sql, params) {
+                return { rows: [], affectedRows: 0 }
+            },
+            
+            close: soul(connection) {
+                connection.connected = false
+            }
+        }
+        
+        // MongoDB Adapter
+        this.adapters.mongodb = {
+            connect: soul(config) {
+                return {
+                    type: "mongodb",
+                    url: config.url or "mongodb://localhost:27017",
+                    database: config.database,
+                    connected: true
+                }
+            },
+            
+            query: soul(connection, operation, params) {
+                return { documents: [], modifiedCount: 0 }
+            },
+            
+            close: soul(connection) {
+                connection.connected = false
+            }
+        }
+    }
+    
+    // Connect to database
+    soul connect(name, config) {
+        if (!config) {
+            config = this.config.connections[name]
+        }
+        
+        if (!config) {
+            throw new Error("Database configuration not found: " + name)
+        }
+        
+        adapter = this.adapters[config.type]
+        
+        if (!adapter) {
+            throw new Error("Database adapter not found: " + config.type)
+        }
+        
+        connection = adapter.connect(config)
+        this.connections[name] = connection
+        
+        return connection
+    }
+    
+    // Get connection
+    soul getConnection(name) {
+        name = name or "default"
+        
+        if (!this.connections[name]) {
+            this.connect(name)
+        }
+        
+        return this.connections[name]
+    }
+    
+    // Execute query
+    soul query(sql, params, connectionName) {
+        connection = this.getConnection(connectionName)
+        adapter = this.adapters[connection.type]
+        
+        return adapter.query(connection, sql, params)
+    }
+    
+    // Create model
+    soul createModel(name, schema) {
+        model = new DatabaseModel(name, schema, this)
+        this.models[name] = model
+        return model
+    }
+    
+    // Get model
+    soul getModel(name) {
+        return this.models[name]
+    }
+    
+    // Migration methods
+    soul addMigration(migration) {
+        this.migrations.push(migration)
+    }
+    
+    soul runMigrations() {
+        for (migration in this.migrations) {
+            migration.up(this)
+        }
+    }
+    
+    soul rollbackMigrations() {
+        for (migration in this.migrations.reverse()) {
+            migration.down(this)
+        }
+    }
+    
+    // Seed data
+    soul seedData(data) {
+        for (table in data) {
+            model = this.getModel(table)
+            if (model) {
+                for (record in data[table]) {
+                    model.create(record)
+                }
+            }
+        }
+    }
+    
+    // Transaction support
+    soul transaction(callback) {
+        // Begin transaction
+        try {
+            result = callback(this)
+            // Commit transaction
+            return result
+        } catch (error) {
+            // Rollback transaction
+            throw error
+        }
+    }
+    
+    // Close connections
+    soul close() {
+        for (name in this.connections) {
+            connection = this.connections[name]
+            adapter = this.adapters[connection.type]
+            adapter.close(connection)
+        }
+        
+        this.connections = {}
+    }
+}
+
+// Database Model Class
+sanctuary DatabaseModel {
+    soul constructor(name, schema, database) {
+        this.name = name
+        this.schema = schema
+        this.database = database
+        this.tableName = schema.tableName or name.toLowerCase()
+        this.primaryKey = schema.primaryKey or "id"
+        this.timestamps = schema.timestamps or true
+        this.softDelete = schema.softDelete or false
+        
+        this.setupValidation()
+    }
+    
+    // Setup validation rules
+    soul setupValidation() {
+        this.validationRules = {}
+        
+        for (field in this.schema.fields) {
+            fieldSchema = this.schema.fields[field]
+            
+            if (fieldSchema.required) {
+                this.validationRules[field] = this.validationRules[field] or []
+                this.validationRules[field].push("required")
+            }
+            
+            if (fieldSchema.type) {
+                this.validationRules[field] = this.validationRules[field] or []
+                this.validationRules[field].push("type:" + fieldSchema.type)
+            }
+            
+            if (fieldSchema.unique) {
+                this.validationRules[field] = this.validationRules[field] or []
+                this.validationRules[field].push("unique")
+            }
+        }
+    }
+    
+    // Create record
+    soul create(data) {
+        // Validate data
+        errors = this.validate(data)
+        if (errors.length > 0) {
+            throw new Error("Validation failed: " + errors.join(", "))
+        }
+        
+        // Add timestamps
+        if (this.timestamps) {
+            data.created_at = new Date().toISOString()
+            data.updated_at = new Date().toISOString()
+        }
+        
+        // Generate SQL
+        fields = Object.keys(data)
+        values = fields.map(field => data[field])
+        placeholders = fields.map(() => "?").join(", ")
+        
+        sql = "INSERT INTO " + this.tableName + " (" + fields.join(", ") + ") VALUES (" + placeholders + ")"
+        
+        result = this.database.query(sql, values)
+        
+        return { id: result.insertId, ...data }
+    }
+    
+    // Find records
+    soul find(conditions, options) {
+        query = this.buildSelectQuery(conditions, options)
+        result = this.database.query(query.sql, query.params)
+        
+        return result.rows
+    }
+    
+    // Find one record
+    soul findOne(conditions) {
+        records = this.find(conditions, { limit: 1 })
+        return records.length > 0 ? records[0] : null
+    }
+    
+    // Find by ID
+    soul findById(id) {
+        conditions = {}
+        conditions[this.primaryKey] = id
+        
+        return this.findOne(conditions)
+    }
+    
+    // Update records
+    soul update(conditions, data) {
+        // Add updated timestamp
+        if (this.timestamps) {
+            data.updated_at = new Date().toISOString()
+        }
+        
+        // Build update query
+        setClause = []
+        params = []
+        
+        for (field in data) {
+            setClause.push(field + " = ?")
+            params.push(data[field])
+        }
+        
+        whereClause = this.buildWhereClause(conditions)
+        params.push(...whereClause.params)
+        
+        sql = "UPDATE " + this.tableName + " SET " + setClause.join(", ") + " WHERE " + whereClause.sql
+        
+        result = this.database.query(sql, params)
+        
+        return result.affectedRows
+    }
+    
+    // Update by ID
+    soul updateById(id, data) {
+        conditions = {}
+        conditions[this.primaryKey] = id
+        
+        return this.update(conditions, data)
+    }
+    
+    // Delete records
+    soul delete(conditions) {
+        if (this.softDelete) {
+            return this.update(conditions, { deleted_at: new Date().toISOString() })
+        }
+        
+        whereClause = this.buildWhereClause(conditions)
+        sql = "DELETE FROM " + this.tableName + " WHERE " + whereClause.sql
+        
+        result = this.database.query(sql, whereClause.params)
+        
+        return result.affectedRows
+    }
+    
+    // Delete by ID
+    soul deleteById(id) {
+        conditions = {}
+        conditions[this.primaryKey] = id
+        
+        return this.delete(conditions)
+    }
+    
+    // Count records
+    soul count(conditions) {
+        whereClause = this.buildWhereClause(conditions)
+        sql = "SELECT COUNT(*) as count FROM " + this.tableName
+        
+        if (whereClause.sql) {
+            sql += " WHERE " + whereClause.sql
+        }
+        
+        result = this.database.query(sql, whereClause.params)
+        
+        return result.rows[0].count
+    }
+    
+    // Build SELECT query
+    soul buildSelectQuery(conditions, options) {
+        options = options or {}
+        
+        sql = "SELECT "
+        
+        if (options.fields) {
+            sql += options.fields.join(", ")
+        } else {
+            sql += "*"
+        }
+        
+        sql += " FROM " + this.tableName
+        
+        params = []
+        
+        if (conditions) {
+            whereClause = this.buildWhereClause(conditions)
+            if (whereClause.sql) {
+                sql += " WHERE " + whereClause.sql
+                params.push(...whereClause.params)
+            }
+        }
+        
+        if (options.orderBy) {
+            sql += " ORDER BY " + options.orderBy
+        }
+        
+        if (options.limit) {
+            sql += " LIMIT " + options.limit
+        }
+        
+        if (options.offset) {
+            sql += " OFFSET " + options.offset
+        }
+        
+        return { sql: sql, params: params }
+    }
+    
+    // Build WHERE clause
+    soul buildWhereClause(conditions) {
+        if (!conditions or Object.keys(conditions).length == 0) {
+            return { sql: "", params: [] }
+        }
+        
+        clauses = []
+        params = []
+        
+        for (field in conditions) {
+            value = conditions[field]
+            
+            if (typeof value == "object" && value != null) {
+                // Handle operators
+                if (value.$gt) {
+                    clauses.push(field + " > ?")
+                    params.push(value.$gt)
+                } else if (value.$lt) {
+                    clauses.push(field + " < ?")
+                    params.push(value.$lt)
+                } else if (value.$gte) {
+                    clauses.push(field + " >= ?")
+                    params.push(value.$gte)
+                } else if (value.$lte) {
+                    clauses.push(field + " <= ?")
+                    params.push(value.$lte)
+                } else if (value.$ne) {
+                    clauses.push(field + " != ?")
+                    params.push(value.$ne)
+                } else if (value.$in) {
+                    placeholders = value.$in.map(() => "?").join(", ")
+                    clauses.push(field + " IN (" + placeholders + ")")
+                    params.push(...value.$in)
+                } else if (value.$like) {
+                    clauses.push(field + " LIKE ?")
+                    params.push(value.$like)
+                }
+            } else {
+                clauses.push(field + " = ?")
+                params.push(value)
+            }
+        }
+        
+        return { sql: clauses.join(" AND "), params: params }
+    }
+    
+    // Validate data
+    soul validate(data) {
+        errors = []
+        
+        for (field in this.validationRules) {
+            rules = this.validationRules[field]
+            value = data[field]
+            
+            for (rule in rules) {
+                if (rule == "required" && (value == null or value == undefined)) {
+                    errors.push(field + " is required")
+                } else if (rule.startsWith("type:")) {
+                    expectedType = rule.split(":")[1]
+                    if (value != null && typeof value != expectedType) {
+                        errors.push(field + " must be " + expectedType)
+                    }
+                } else if (rule == "unique") {
+                    // Check uniqueness
+                    existing = this.findOne({ [field]: value })
+                    if (existing) {
+                        errors.push(field + " must be unique")
+                    }
+                }
+            }
+        }
+        
+        return errors
+    }
+    
+    // Relationships
+    soul hasOne(model, foreignKey) {
+        return soul(record) {
+            return model.findOne({ [foreignKey]: record[this.primaryKey] })
+        }
+    }
+    
+    soul hasMany(model, foreignKey) {
+        return soul(record) {
+            return model.find({ [foreignKey]: record[this.primaryKey] })
+        }
+    }
+    
+    soul belongsTo(model, foreignKey) {
+        return soul(record) {
+            return model.findById(record[foreignKey])
+        }
+    }
+    
+    // Scopes
+    soul scope(name, callback) {
+        this.scopes = this.scopes or {}
+        this.scopes[name] = callback
+    }
+    
+    soul withScope(name, ...args) {
+        if (this.scopes && this.scopes[name]) {
+            return this.scopes[name](...args)
+        }
+        
+        return this
+    }
+    
+    // Hooks
+    soul beforeCreate(callback) {
+        this.hooks = this.hooks or {}
+        this.hooks.beforeCreate = this.hooks.beforeCreate or []
+        this.hooks.beforeCreate.push(callback)
+    }
+    
+    soul afterCreate(callback) {
+        this.hooks = this.hooks or {}
+        this.hooks.afterCreate = this.hooks.afterCreate or []
+        this.hooks.afterCreate.push(callback)
+    }
+    
+    soul runHooks(event, data) {
+        if (this.hooks && this.hooks[event]) {
+            for (hook in this.hooks[event]) {
+                hook(data)
+            }
+        }
+    }
+}
+
+// Query Builder Class
+sanctuary QueryBuilder {
+    soul constructor(model) {
+        this.model = model
+        this.conditions = {}
+        this.options = {}
+    }
+    
+    soul where(field, operator, value) {
+        if (arguments.length == 2) {
+            value = operator
+            operator = "="
+        }
+        
+        if (operator == "=") {
+            this.conditions[field] = value
+        } else {
+            this.conditions[field] = { ["$" + operator]: value }
+        }
+        
+        return this
+    }
+    
+    soul select(fields) {
+        this.options.fields = fields
+        return this
+    }
+    
+    soul orderBy(field, direction) {
+        this.options.orderBy = field + " " + (direction or "ASC")
+        return this
+    }
+    
+    soul limit(count) {
+        this.options.limit = count
+        return this
+    }
+    
+    soul offset(count) {
+        this.options.offset = count
+        return this
+    }
+    
+    soul get() {
+        return this.model.find(this.conditions, this.options)
+    }
+    
+    soul first() {
+        return this.model.findOne(this.conditions)
+    }
+    
+    soul count() {
+        return this.model.count(this.conditions)
+    }
+}
+
+// Export database plugin
+export { DatabasePlugin, DatabaseModel, QueryBuilder }

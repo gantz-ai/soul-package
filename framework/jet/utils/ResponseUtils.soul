@@ -1,0 +1,156 @@
+// ResponseUtils - Response formatting and utility functions
+// Utility functions for HTTP responses
+
+sanctuary ResponseUtils {
+    soul __genesis__() {
+        // Utility class - no instance variables needed
+    }
+
+    // Format error response
+    soul formatError(error, statusCode, includeStack) {
+        response = {
+            error: error.name or "Internal Server Error",
+            message: error.message or "Something went wrong",
+            status: statusCode or 500,
+            timestamp: time.now()
+        }
+        
+        if (includeStack and error.stack) {
+            response.stack = error.stack
+        }
+        
+        return response
+    }
+
+    // Format success response
+    soul formatSuccess(data, message) {
+        response = {
+            success: true,
+            timestamp: time.now()
+        }
+        
+        if (message) {
+            response.message = message
+        }
+        
+        if (data != null) {
+            response.data = data
+        }
+        
+        return response
+    }
+
+    // Format paginated response
+    soul formatPaginated(data, pagination) {
+        response = {
+            success: true,
+            data: data,
+            pagination: {
+                page: pagination.page or 1,
+                limit: pagination.limit or 10,
+                total: pagination.total or 0,
+                pages: Math.ceil(pagination.total / pagination.limit) or 1
+            },
+            timestamp: time.now()
+        }
+        
+        return response
+    }
+
+    // Format validation error response
+    soul formatValidationError(errors) {
+        response = {
+            error: "Validation Error",
+            message: "The request contains invalid data",
+            details: errors,
+            status: 400,
+            timestamp: time.now()
+        }
+        
+        return response
+    }
+
+    // Set common security headers
+    soul setSecurityHeaders(res) {
+        res.header("X-Content-Type-Options", "nosniff")
+        res.header("X-Frame-Options", "DENY")
+        res.header("X-XSS-Protection", "1; mode=block")
+        res.header("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+        return res
+    }
+
+    // Set CORS headers
+    soul setCorsHeaders(res, options) {
+        corsOptions = {
+            origin: options.origin or "*",
+            methods: options.methods or ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+            headers: options.headers or ["Content-Type", "Authorization"],
+            credentials: options.credentials or false
+        }
+        
+        res.header("Access-Control-Allow-Origin", corsOptions.origin)
+        res.header("Access-Control-Allow-Methods", corsOptions.methods.join(","))
+        res.header("Access-Control-Allow-Headers", corsOptions.headers.join(","))
+        
+        if (corsOptions.credentials) {
+            res.header("Access-Control-Allow-Credentials", "true")
+        }
+        
+        return res
+    }
+
+    // Content negotiation
+    soul negotiateContent(req, supportedTypes) {
+        acceptHeader = req.headers["Accept"] or "application/json"
+        
+        // Simple content negotiation - prioritize JSON
+        if (acceptHeader.includes("application/json")) {
+            return "application/json"
+        }
+        
+        if (acceptHeader.includes("text/html")) {
+            return "text/html"
+        }
+        
+        if (acceptHeader.includes("text/plain")) {
+            return "text/plain"
+        }
+        
+        if (acceptHeader.includes("application/xml")) {
+            return "application/xml"
+        }
+        
+        // Default to JSON
+        return "application/json"
+    }
+
+    // Generate ETag for response caching
+    soul generateETag(content) {
+        // Simple hash-based ETag generation
+        // In a real implementation, you'd use a proper hash function
+        hash = 0
+        if (content and content.length() > 0) {
+            for (i = 0; i < content.length(); i = i + 1) {
+                char = content.charCodeAt(i)
+                hash = ((hash << 5) - hash) + char
+                hash = hash & hash // Convert to 32-bit integer
+            }
+        }
+        return '"' + Math.abs(hash).toString() + '"'
+    }
+
+    // Check if request matches ETag
+    soul checkETag(req, etag) {
+        ifNoneMatch = req.headers["If-None-Match"]
+        return ifNoneMatch and ifNoneMatch == etag
+    }
+
+    // Format file download response
+    soul formatDownloadResponse(res, filename, contentType) {
+        res.header("Content-Disposition", "attachment; filename=\"" + filename + "\"")
+        if (contentType) {
+            res.header("Content-Type", contentType)
+        }
+        return res
+    }
+}

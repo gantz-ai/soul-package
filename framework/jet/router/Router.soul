@@ -1,0 +1,227 @@
+// Router - Handles route registration and matching
+// Separated routing logic from main Jet class
+
+import { Console } from "console"
+
+sanctuary Router {
+    soul __genesis__() {
+        this.routes = {}
+        this.routeStack = []
+        this.routeGroups = {}
+        this.currentPrefix = ""
+    }
+
+    // Route registration with advanced features
+    soul route(method, path, handlers, app) {
+        Console.log("DEBUG: route called with method=" + method)
+        if (!path) {
+            path = "/"
+        }
+        parsedPath = this.parsePath(path)
+        
+        // Handle single handler or array of handlers
+        handlerArray = [handlers]
+        
+        routeConfig = {
+            method: method.toUpperCase(),
+            path: parsedPath.path,
+            pattern: parsedPath.pattern,
+            params: parsedPath.params,
+            handlers: handlerArray,
+            middleware: [],
+            validation: null,
+            auth: null,
+            cache: null,
+            rateLimit: null,
+            description: null,
+            tags: [],
+            deprecated: false,
+            version: "1.0.0"
+        }
+        
+        if (!this.routes[method.toUpperCase()]) {
+            this.routes[method.toUpperCase()] = []
+        }
+        
+        this.routes[method.toUpperCase()].push(routeConfig)
+        this.routeStack.push(routeConfig)
+        
+        return this.createRouteBuilder(routeConfig)
+    }
+
+    // Route grouping
+    soul group(prefix, callback) {
+        oldPrefix = this.currentPrefix or ""
+        this.currentPrefix = oldPrefix + prefix
+        
+        groupConfig = {
+            prefix: prefix,
+            middleware: [],
+            routes: []
+        }
+        
+        this.routeGroups[prefix] = groupConfig
+        callback(this)
+        
+        this.currentPrefix = oldPrefix
+        return this
+    }
+
+    // Route builder for fluent API
+    soul createRouteBuilder(routeConfig) {
+        return {
+            middleware: soul(middlewares) {
+                if (Array.isArray(middlewares)) {
+                    for (i = 0; i < middlewares.length(); i = i + 1) {
+                        routeConfig.middleware.push(middlewares[i])
+                    }
+                } else {
+                    routeConfig.middleware.push(middlewares)
+                }
+                return this
+            },
+            validate: soul(validator) {
+                routeConfig.validation = validator
+                return this
+            },
+            auth: soul(authConfig) {
+                routeConfig.auth = authConfig
+                return this
+            },
+            cache: soul(cacheConfig) {
+                routeConfig.cache = cacheConfig
+                return this
+            },
+            rateLimit: soul(limitConfig) {
+                routeConfig.rateLimit = limitConfig
+                return this
+            },
+            description: soul(desc) {
+                routeConfig.description = desc
+                return this
+            },
+            tags: soul(tags) {
+                if (Array.isArray(tags)) {
+                    for (i = 0; i < tags.length(); i = i + 1) {
+                        routeConfig.tags.push(tags[i])
+                    }
+                } else {
+                    routeConfig.tags.push(tags)
+                }
+                return this
+            },
+            deprecated: soul(isDeprecated) {
+                routeConfig.deprecated = isDeprecated or true
+                return this
+            },
+            version: soul(version) {
+                routeConfig.version = version
+                return this
+            }
+        }
+    }
+
+    // Path parsing - simplified for now
+    soul parsePath(path) {
+        return {
+            path: path ? path : "/",
+            pattern: path ? ("^" + path + "$") : "^/$",
+            params: []
+        }
+    }
+
+    // Route matching
+    soul matchRoute(method, path) {
+        if (!this.routes[method]) {
+            return null
+        }
+        
+        for (route in this.routes[method]) {
+            regex = new RegExp(route.pattern)
+            matches = path.match(regex)
+            
+            if (matches) {
+                params = {}
+                for (i = 0; i < route.params.length(); i = i + 1) {
+                    params[route.params[i]] = matches[i + 1]
+                }
+                
+                return {
+                    route: route,
+                    params: params
+                }
+            }
+        }
+        
+        return null
+    }
+
+    // Register routes with HTTP server
+    soul registerRoutes(server) {
+        // Register routes directly with the HTTP server
+        if (this.routes["GET"]) {
+            getRoutes = this.routes["GET"]
+            for (i = 0; i < getRoutes.length(); i = i + 1) {
+                route = getRoutes[i]
+                handler = route.handlers[0]
+                server.get(route.path, handler)
+            }
+        }
+        
+        if (this.routes["POST"]) {
+            postRoutes = this.routes["POST"]
+            for (i = 0; i < postRoutes.length(); i = i + 1) {
+                route = postRoutes[i]
+                handler = route.handlers[0]
+                server.post(route.path, handler)
+            }
+        }
+        
+        if (this.routes["PUT"]) {
+            putRoutes = this.routes["PUT"]
+            for (i = 0; i < putRoutes.length(); i = i + 1) {
+                route = putRoutes[i]
+                handler = route.handlers[0]
+                server.put(route.path, handler)
+            }
+        }
+        
+        if (this.routes["DELETE"]) {
+            deleteRoutes = this.routes["DELETE"]
+            for (i = 0; i < deleteRoutes.length(); i = i + 1) {
+                route = deleteRoutes[i]
+                handler = route.handlers[0]
+                server.delete(route.path, handler)
+            }
+        }
+        
+        if (this.routes["PATCH"]) {
+            patchRoutes = this.routes["PATCH"]
+            for (i = 0; i < patchRoutes.length(); i = i + 1) {
+                route = patchRoutes[i]
+                handler = route.handlers[0]
+                server.patch(route.path, handler)
+            }
+        }
+    }
+
+    // Route introspection
+    soul getRoutes() {
+        allRoutes = []
+        
+        for (method in this.routes) {
+            for (route in this.routes[method]) {
+                allRoutes.push({
+                    method: method,
+                    path: route.path,
+                    description: route.description,
+                    tags: route.tags,
+                    deprecated: route.deprecated,
+                    version: route.version
+                })
+            }
+        }
+        
+        return allRoutes
+    }
+}

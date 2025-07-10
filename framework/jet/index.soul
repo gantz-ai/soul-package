@@ -1,0 +1,10 @@
+// Jet Framework - Modular Web Framework for Soul
+// Main entry point that exports the framework
+
+import { createJet } from "./core/Jet.soul"
+
+// Export the main factory function for creating Jet instances
+// This maintains backward compatibility with existing code
+soul Jet(port) {
+    return createJet(port)
+}

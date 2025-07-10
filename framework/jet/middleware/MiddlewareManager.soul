@@ -1,0 +1,411 @@
+// MiddlewareManager - Handles middleware registration and execution
+// Separated middleware logic from main Jet class
+
+import { Console } from "console"
+
+sanctuary MiddlewareManager {
+    soul __genesis__() {
+        this.middlewares = []
+        this.errorHandlers = []
+    }
+
+    // Middleware system
+    soul use(middleware, unused, app) {
+        // Add middleware to apply to all paths
+        this.middlewares.push({
+            path: "*",
+            handler: middleware,
+            type: "middleware"
+        })
+        return app
+    }
+
+    // Advanced middleware
+    soul cors(options, app) {
+        corsConfig = {
+            origin: options.origin ? options.origin : "*",
+            methods: options.methods ? options.methods : ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+            headers: options.headers ? options.headers : ["Content-Type", "Authorization"],
+            credentials: options.credentials ? options.credentials : false,
+            maxAge: options.maxAge ? options.maxAge : 86400,
+            preflightContinue: options.preflightContinue ? options.preflightContinue : false
+        }
+        
+        corsMiddleware = soul(req, res, next) {
+            // Set CORS headers
+            res.header("Access-Control-Allow-Origin", corsConfig.origin)
+            res.header("Access-Control-Allow-Methods", corsConfig.methods.join(","))
+            res.header("Access-Control-Allow-Headers", corsConfig.headers.join(","))
+            
+            if (corsConfig.credentials) {
+                res.header("Access-Control-Allow-Credentials", "true")
+            }
+            
+            if (corsConfig.maxAge) {
+                res.header("Access-Control-Max-Age", corsConfig.maxAge.toString())
+            }
+            
+            if (req.method == "OPTIONS") {
+                if (corsConfig.preflightContinue) {
+                    next()
+                } else {
+                    res.status(204).end()
+                }
+            } else {
+                next()
+            }
+        }
+        this.middlewares.push({
+            path: "*",
+            handler: corsMiddleware,
+            type: "middleware"
+        })
+        return app
+    }
+
+    soul helmet(options, app) {
+        helmetConfig = {
+            contentSecurityPolicy: true,
+            frameguard: true,
+            hidePoweredBy: true,
+            noSniff: true,
+            xssFilter: true
+        }
+        
+        helmetMiddleware = soul(req, res, next) {
+            if (helmetConfig.hidePoweredBy) {
+                res.removeHeader("X-Powered-By")
+            }
+            
+            if (helmetConfig.frameguard) {
+                res.header("X-Frame-Options", "DENY")
+            }
+            
+            if (helmetConfig.noSniff) {
+                res.header("X-Content-Type-Options", "nosniff")
+            }
+            
+            if (helmetConfig.xssFilter) {
+                res.header("X-XSS-Protection", "1; mode=block")
+            }
+            
+            if (helmetConfig.contentSecurityPolicy) {
+                res.header("Content-Security-Policy", "default-src 'self'")
+            }
+            
+            next()
+        }
+        this.middlewares.push({
+            path: "*",
+            handler: helmetMiddleware,
+            type: "middleware"
+        })
+        return app
+    }
+
+    soul compression(options, app) {
+        compressConfig = {
+            level: options.level or 6,
+            threshold: options.threshold or 1024,
+            filter: options.filter or null
+        }
+        
+        compressionMiddleware = soul(req, res, next) {
+            // Basic compression middleware
+            acceptEncoding = req.headers["Accept-Encoding"] or ""
+            
+            if (acceptEncoding.includes("gzip")) {
+                res.header("Content-Encoding", "gzip")
+                res.header("Vary", "Accept-Encoding")
+            }
+            
+            next()
+        }
+        this.middlewares.push({
+            path: "*",
+            handler: compressionMiddleware,
+            type: "middleware"
+        })
+        return app
+    }
+
+    soul rateLimit(options, app) {
+        limitConfig = {
+            windowMs: 900000, // 15 minutes
+            max: 100,
+            message: "Too many requests"
+        }
+        
+        requests = {}
+        
+        rateLimitMiddleware = soul(req, res, next) {
+            key = req.ip ? req.ip : "unknown"
+            now = time.now()
+            
+            if (!requests[key]) {
+                requests[key] = {
+                    count: 0,
+                    resetTime: now + limitConfig.windowMs
+                }
+            }
+            
+            if (now > requests[key].resetTime) {
+                requests[key].count = 0
+                requests[key].resetTime = now + limitConfig.windowMs
+            }
+            
+            requests[key].count++
+            
+            if (requests[key].count > limitConfig.max) {
+                res.status(429).json({
+                    error: "Too Many Requests",
+                    message: limitConfig.message
+                })
+                return
+            }
+            
+            next()
+        }
+        this.middlewares.push({
+            path: "*",
+            handler: rateLimitMiddleware,
+            type: "middleware"
+        })
+        return app
+    }
+
+    // Authentication middleware
+    soul auth(strategy, options, app) {
+        authConfig = {
+            strategy: strategy,
+            options: options or {}
+        }
+        
+        if (strategy == "jwt") {
+            jwtMiddleware = soul(req, res, next) {
+                token = req.headers["authorization"]
+                
+                if (!token) {
+                    return res.status(401).json({
+                        error: "Unauthorized",
+                        message: "No token provided"
+                    })
+                }
+                
+                if (token.startsWith("Bearer ")) {
+                    token = token.slice(7)
+                }
+                
+                // JWT verification would go here
+                // For now, just pass through
+                req.user = { id: 1, username: "user" }
+                next()
+            }
+            this.middlewares.push({
+                path: "*",
+                handler: jwtMiddleware,
+                type: "middleware"
+            })
+            return app
+        } else if (strategy == "basic") {
+            basicMiddleware = soul(req, res, next) {
+                auth = req.headers["authorization"]
+                
+                if (!auth or !auth.startsWith("Basic ")) {
+                    return res.status(401).json({
+                        error: "Unauthorized",
+                        message: "Basic authentication required"
+                    })
+                }
+                
+                // Basic auth verification would go here
+                req.user = { id: 1, username: "user" }
+                next()
+            }
+            this.middlewares.push({
+                path: "*",
+                handler: basicMiddleware,
+                type: "middleware"
+            })
+            return app
+        } else if (strategy == "session") {
+            sessionMiddleware = soul(req, res, next) {
+                sessionId = req.cookies["session-id"]
+                
+                if (!sessionId) {
+                    return res.status(401).json({
+                        error: "Unauthorized",
+                        message: "No session found"
+                    })
+                }
+                
+                // Session verification would go here
+                req.user = { id: 1, username: "user" }
+                next()
+            }
+            this.middlewares.push({
+                path: "*",
+                handler: sessionMiddleware,
+                type: "middleware"
+            })
+            return app
+        }
+        
+        return app
+    }
+
+    // Validation middleware
+    soul validate(schema) {
+        return soul(req, res, next) {
+            errors = this.validateRequest(req, schema)
+            
+            if (errors.length() > 0) {
+                return res.status(400).json({
+                    error: "Validation Error",
+                    details: errors
+                })
+            }
+            
+            next()
+        }
+    }
+
+    soul validateRequest(req, schema) {
+        errors = []
+        
+        if (schema.body) {
+            bodyErrors = this.validateObject(req.body, schema.body, "body")
+            for (i = 0; i < bodyErrors.length(); i = i + 1) {
+                errors.push(bodyErrors[i])
+            }
+        }
+        
+        if (schema.params) {
+            paramErrors = this.validateObject(req.params, schema.params, "params")
+            for (i = 0; i < paramErrors.length(); i = i + 1) {
+                errors.push(paramErrors[i])
+            }
+        }
+        
+        if (schema.query) {
+            queryErrors = this.validateObject(req.query, schema.query, "query")
+            for (i = 0; i < queryErrors.length(); i = i + 1) {
+                errors.push(queryErrors[i])
+            }
+        }
+        
+        if (schema.headers) {
+            headerErrors = this.validateObject(req.headers, schema.headers, "headers")
+            for (i = 0; i < headerErrors.length(); i = i + 1) {
+                errors.push(headerErrors[i])
+            }
+        }
+        
+        return errors
+    }
+
+    soul validateObject(obj, schema, path) {
+        errors = []
+        
+        for (field in schema) {
+            fieldSchema = schema[field]
+            value = obj[field]
+            
+            if (fieldSchema.required and (value == null or value == null)) {
+                errors.push({
+                    field: path + "." + field,
+                    message: "Field is required"
+                })
+                // Skip to next field
+            }
+            
+            if (value != null and fieldSchema.type) {
+                // Simplified type checking for Soul language
+                validType = true
+                if (fieldSchema.type == "string" and value.constructor.name != "String") {
+                    validType = false
+                    errors.push({
+                        field: path + "." + field,
+                        message: "Must be a string"
+                    })
+                }
+                if (fieldSchema.type == "number" and value.constructor.name != "Number") {
+                    validType = false
+                    errors.push({
+                        field: path + "." + field,
+                        message: "Must be a number"
+                    })
+                }
+            }
+            
+            if (value != null and fieldSchema.min != null and value < fieldSchema.min) {
+                errors.push({
+                    field: path + "." + field,
+                    message: "Must be at least " + fieldSchema.min
+                })
+            }
+            
+            if (value != null and fieldSchema.max != null and value > fieldSchema.max) {
+                errors.push({
+                    field: path + "." + field,
+                    message: "Must be at most " + fieldSchema.max
+                })
+            }
+            
+            if (value != null and fieldSchema.pattern and !fieldSchema.pattern.test(value)) {
+                errors.push({
+                    field: path + "." + field,
+                    message: "Invalid format"
+                })
+            }
+        }
+        
+        return errors
+    }
+
+    // Static file serving
+    soul static(path, options, app) {
+        staticConfig = {
+            path: path,
+            root: options.root or process.cwd(),
+            index: options.index or "index.html",
+            dotfiles: options.dotfiles or "ignore",
+            etag: options.etag or true,
+            extensions: options.extensions or false,
+            fallthrough: options.fallthrough or true,
+            immutable: options.immutable or false,
+            lastModified: options.lastModified or true,
+            maxAge: options.maxAge or 0,
+            redirect: options.redirect or true,
+            setHeaders: options.setHeaders or null
+        }
+        
+        staticMiddleware = soul(req, res, next) {
+            filePath = req.path.replace(path, "")
+            
+            if (filePath.startsWith("/")) {
+                filePath = filePath.slice(1)
+            }
+            
+            if (!filePath and staticConfig.index) {
+                filePath = staticConfig.index
+            }
+            
+            // Static file serving logic would go here
+            // For now, just pass through
+            next()
+        }
+        this.middlewares.push({
+            path: "*",
+            handler: staticMiddleware,
+            type: "middleware"
+        })
+        return app
+    }
+
+    // Error handling
+    soul error(handler, app) {
+        this.errorHandlers.push(handler)
+        return app
+    }
+}
