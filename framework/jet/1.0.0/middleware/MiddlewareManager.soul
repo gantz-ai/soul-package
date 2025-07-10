@@ -105,14 +105,14 @@ sanctuary MiddlewareManager {
 
     soul compression(options, app) {
         compressConfig = {
-            level: options.level or 6,
-            threshold: options.threshold or 1024,
-            filter: options.filter or null
+            level: options.level || 6,
+            threshold: options.threshold || 1024,
+            filter: options.filter || null
         }
         
         compressionMiddleware = soul(req, res, next) {
             // Basic compression middleware
-            acceptEncoding = req.headers["Accept-Encoding"] or ""
+            acceptEncoding = req.headers["Accept-Encoding"] || ""
             
             if (acceptEncoding.includes("gzip")) {
                 res.header("Content-Encoding", "gzip")
@@ -178,7 +178,7 @@ sanctuary MiddlewareManager {
     soul auth(strategy, options, app) {
         authConfig = {
             strategy: strategy,
-            options: options or {}
+            options: options || {}
         }
         
         if (strategy == "jwt") {
@@ -211,7 +211,7 @@ sanctuary MiddlewareManager {
             basicMiddleware = soul(req, res, next) {
                 auth = req.headers["authorization"]
                 
-                if (!auth or !auth.startsWith("Basic ")) {
+                if (!auth || !auth.startsWith("Basic ")) {
                     return res.status(401).json({
                         error: "Unauthorized",
                         message: "Basic authentication required"
@@ -311,7 +311,7 @@ sanctuary MiddlewareManager {
             fieldSchema = schema[field]
             value = obj[field]
             
-            if (fieldSchema.required and (value == null or value == null)) {
+            if (fieldSchema.required && (value == null || value == null)) {
                 errors.push({
                     field: path + "." + field,
                     message: "Field is required"
@@ -319,17 +319,17 @@ sanctuary MiddlewareManager {
                 // Skip to next field
             }
             
-            if (value != null and fieldSchema.type) {
+            if (value != null && fieldSchema.type) {
                 // Simplified type checking for Soul language
                 validType = true
-                if (fieldSchema.type == "string" and value.constructor.name != "String") {
+                if (fieldSchema.type == "string" && value.constructor.name != "String") {
                     validType = false
                     errors.push({
                         field: path + "." + field,
                         message: "Must be a string"
                     })
                 }
-                if (fieldSchema.type == "number" and value.constructor.name != "Number") {
+                if (fieldSchema.type == "number" && value.constructor.name != "Number") {
                     validType = false
                     errors.push({
                         field: path + "." + field,
@@ -338,21 +338,21 @@ sanctuary MiddlewareManager {
                 }
             }
             
-            if (value != null and fieldSchema.min != null and value < fieldSchema.min) {
+            if (value != null && fieldSchema.min != null && value < fieldSchema.min) {
                 errors.push({
                     field: path + "." + field,
                     message: "Must be at least " + fieldSchema.min
                 })
             }
             
-            if (value != null and fieldSchema.max != null and value > fieldSchema.max) {
+            if (value != null && fieldSchema.max != null && value > fieldSchema.max) {
                 errors.push({
                     field: path + "." + field,
                     message: "Must be at most " + fieldSchema.max
                 })
             }
             
-            if (value != null and fieldSchema.pattern and !fieldSchema.pattern.test(value)) {
+            if (value != null && fieldSchema.pattern && !fieldSchema.pattern.test(value)) {
                 errors.push({
                     field: path + "." + field,
                     message: "Invalid format"
@@ -367,17 +367,17 @@ sanctuary MiddlewareManager {
     soul static(path, options, app) {
         staticConfig = {
             path: path,
-            root: options.root or process.cwd(),
-            index: options.index or "index.html",
-            dotfiles: options.dotfiles or "ignore",
-            etag: options.etag or true,
-            extensions: options.extensions or false,
-            fallthrough: options.fallthrough or true,
-            immutable: options.immutable or false,
-            lastModified: options.lastModified or true,
-            maxAge: options.maxAge or 0,
-            redirect: options.redirect or true,
-            setHeaders: options.setHeaders or null
+            root: options.root || process.cwd(),
+            index: options.index || "index.html",
+            dotfiles: options.dotfiles || "ignore",
+            etag: options.etag || true,
+            extensions: options.extensions || false,
+            fallthrough: options.fallthrough || true,
+            immutable: options.immutable || false,
+            lastModified: options.lastModified || true,
+            maxAge: options.maxAge || 0,
+            redirect: options.redirect || true,
+            setHeaders: options.setHeaders || null
         }
         
         staticMiddleware = soul(req, res, next) {
@@ -387,7 +387,7 @@ sanctuary MiddlewareManager {
                 filePath = filePath.slice(1)
             }
             
-            if (!filePath and staticConfig.index) {
+            if (!filePath && staticConfig.index) {
                 filePath = staticConfig.index
             }
             
