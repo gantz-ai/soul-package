@@ -19,6 +19,11 @@
       "name": "Utility Functions",
       "description": "Common utility packages for mathematical operations and time handling",
       "path": "utility/"
+    },
+    "framework": {
+      "name": "Web Frameworks",
+      "description": "Full-featured web frameworks for building APIs and web applications",
+      "path": "framework/"
     }
   },
   "packages": {
@@ -115,6 +120,38 @@
           "main": "index.soul",
           "dependencies": {},
           "license": "MIT"
+        }
+      },
+      "latest": "1.0.0"
+    },
+    "jet": {
+      "category": "framework",
+      "description": "Modern web framework for Soul with MVC architecture, middleware support, and built-in security",
+      "keywords": ["web", "framework", "mvc", "middleware", "routing", "api", "server"],
+      "versions": {
+        "1.0.0": {
+          "path": "framework/jet/",
+          "main": "index.soul",
+          "dependencies": {
+            "console": "^1.0.0",
+            "http": "^1.0.0",
+            "time": "^1.0.0"
+          },
+          "license": "MIT",
+          "description": "Full-featured web framework with MVC architecture, middleware system, routing, security features (CORS, Helmet, Rate Limiting), and modular design",
+          "features": [
+            "MVC Architecture with Controllers and Services",
+            "Flexible Middleware System",
+            "Advanced Routing with Path Parameters",
+            "Built-in Security (CORS, Helmet, Rate Limiting)",
+            "Request/Response Utilities",
+            "Health Check Endpoints",
+            "Service Registration and Dependency Injection",
+            "Modular Component Design"
+          ],
+          "examples": [
+            "examples/server.soul"
+          ]
         }
       },
       "latest": "1.0.0"
