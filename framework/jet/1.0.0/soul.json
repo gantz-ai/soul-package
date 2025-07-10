@@ -1,0 +1,60 @@
+{
+  "name": "jet",
+  "version": "1.0.0",
+  "description": "A modern, feature-rich web framework for Soul language with MVC architecture, middleware support, and built-in security features",
+  "main": "index.soul",
+  "author": "Soul Community",
+  "license": "MIT",
+  "keywords": [
+    "web",
+    "framework",
+    "http",
+    "server",
+    "mvc",
+    "middleware",
+    "routing",
+    "soul",
+    "api",
+    "rest"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/soul-lang/packages"
+  },
+  "dependencies": {
+    "console": "^1.0.0",
+    "http": "^1.0.0",
+    "time": "^1.0.0"
+  },
+  "engines": {
+    "soul": ">=1.0.0"
+  },
+  "files": [
+    "index.soul",
+    "core/",
+    "router/",
+    "middleware/",
+    "utils/"
+  ],
+  "scripts": {
+    "test": "soul test",
+    "example": "soul run examples/server.soul"
+  },
+  "categories": [
+    "web",
+    "framework",
+    "server"
+  ],
+  "features": [
+    "MVC Architecture",
+    "Middleware Support",
+    "Built-in Security (CORS, Helmet, Rate Limiting)",
+    "Flexible Routing",
+    "Service Registration",
+    "Controller Integration",
+    "Request Logging",
+    "Health Checks",
+    "JSON Utilities",
+    "Error Handling"
+  ]
+}
