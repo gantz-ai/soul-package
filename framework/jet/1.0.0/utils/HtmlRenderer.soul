@@ -117,6 +117,12 @@ static sanctuary HtmlRenderer {
                 partials: partialNames
             }
             
+            // Check if the template file exists
+            templatePath = os.joinPath(this.viewsPath, mainTemplate + ".html")
+            if (!os.exists(templatePath)) {
+                throw "Template file not found: " + templatePath
+            }
+            
             // Use the renderWithFiles function
             result = template.renderWithFiles(templateFileConfig, data || {})
             
