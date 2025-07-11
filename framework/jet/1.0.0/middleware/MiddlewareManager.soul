@@ -7,6 +7,50 @@ sanctuary MiddlewareManager {
     soul __genesis__() {
         this.middlewares = []
         this.errorHandlers = []
+        this.defaultConfigs = this.initializeDefaultConfigs()
+    }
+
+    // Initialize default configurations for middleware
+    soul initializeDefaultConfigs() {
+        return {
+            cors: {
+                origin: "*",
+                methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+                headers: ["Content-Type", "Authorization"],
+                credentials: false,
+                maxAge: 86400,
+                preflightContinue: false
+            },
+            helmet: {
+                contentSecurityPolicy: true,
+                frameguard: true,
+                hidePoweredBy: true,
+                noSniff: true,
+                xssFilter: true
+            },
+            compression: {
+                level: 6,
+                threshold: 1024,
+                filter: null
+            },
+            rateLimit: {
+                windowMs: 900000,
+                max: 100,
+                message: "Too many requests"
+            },
+            staticFiles: {
+                index: "index.html",
+                dotfiles: "ignore",
+                etag: true,
+                extensions: false,
+                fallthrough: true,
+                immutable: false,
+                lastModified: true,
+                maxAge: 0,
+                redirect: true,
+                setHeaders: null
+            }
+        }
     }
 
     // Middleware system
@@ -20,16 +64,58 @@ sanctuary MiddlewareManager {
         return app
     }
 
+    // Helper method to merge options with defaults
+    soul mergeWithDefaults(key, options) {
+        if (key == "cors") {
+            return {
+                origin: options && options.origin ? options.origin : "*",
+                methods: options && options.methods ? options.methods : ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+                headers: options && options.headers ? options.headers : ["Content-Type", "Authorization"],
+                credentials: options && options.credentials ? options.credentials : false,
+                maxAge: options && options.maxAge ? options.maxAge : 86400,
+                preflightContinue: options && options.preflightContinue ? options.preflightContinue : false
+            }
+        } else if (key == "helmet") {
+            return {
+                contentSecurityPolicy: options && options.contentSecurityPolicy ? options.contentSecurityPolicy : true,
+                frameguard: options && options.frameguard ? options.frameguard : true,
+                hidePoweredBy: options && options.hidePoweredBy ? options.hidePoweredBy : true,
+                noSniff: options && options.noSniff ? options.noSniff : true,
+                xssFilter: options && options.xssFilter ? options.xssFilter : true
+            }
+        } else if (key == "compression") {
+            return {
+                level: options && options.level ? options.level : 6,
+                threshold: options && options.threshold ? options.threshold : 1024,
+                filter: options && options.filter ? options.filter : null
+            }
+        } else if (key == "rateLimit") {
+            return {
+                windowMs: options && options.windowMs ? options.windowMs : 900000,
+                max: options && options.max ? options.max : 100,
+                message: options && options.message ? options.message : "Too many requests"
+            }
+        } else if (key == "staticFiles") {
+            return {
+                index: options && options.index ? options.index : "index.html",
+                dotfiles: options && options.dotfiles ? options.dotfiles : "ignore",
+                etag: options && options.etag ? options.etag : true,
+                extensions: options && options.extensions ? options.extensions : false,
+                fallthrough: options && options.fallthrough ? options.fallthrough : true,
+                immutable: options && options.immutable ? options.immutable : false,
+                lastModified: options && options.lastModified ? options.lastModified : true,
+                maxAge: options && options.maxAge ? options.maxAge : 0,
+                redirect: options && options.redirect ? options.redirect : true,
+                setHeaders: options && options.setHeaders ? options.setHeaders : null
+            }
+        }
+        
+        return {}
+    }
+
     // Advanced middleware
     soul cors(options, app) {
-        corsConfig = {
-            origin: options.origin ? options.origin : "*",
-            methods: options.methods ? options.methods : ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-            headers: options.headers ? options.headers : ["Content-Type", "Authorization"],
-            credentials: options.credentials ? options.credentials : false,
-            maxAge: options.maxAge ? options.maxAge : 86400,
-            preflightContinue: options.preflightContinue ? options.preflightContinue : false
-        }
+        corsConfig = this.mergeWithDefaults("cors", options)
         
         corsMiddleware = soul(req, res, next) {
             // Set CORS headers
@@ -64,13 +150,7 @@ sanctuary MiddlewareManager {
     }
 
     soul helmet(options, app) {
-        helmetConfig = {
-            contentSecurityPolicy: true,
-            frameguard: true,
-            hidePoweredBy: true,
-            noSniff: true,
-            xssFilter: true
-        }
+        helmetConfig = this.mergeWithDefaults("helmet", options)
         
         helmetMiddleware = soul(req, res, next) {
             if (helmetConfig.hidePoweredBy) {
@@ -104,11 +184,7 @@ sanctuary MiddlewareManager {
     }
 
     soul compression(options, app) {
-        compressConfig = {
-            level: options.level || 6,
-            threshold: options.threshold || 1024,
-            filter: options.filter || null
-        }
+        compressConfig = this.mergeWithDefaults("compression", options)
         
         compressionMiddleware = soul(req, res, next) {
             // Basic compression middleware
@@ -130,11 +206,7 @@ sanctuary MiddlewareManager {
     }
 
     soul rateLimit(options, app) {
-        limitConfig = {
-            windowMs: 900000, // 15 minutes
-            max: 100,
-            message: "Too many requests"
-        }
+        limitConfig = this.mergeWithDefaults("rateLimit", options)
         
         requests = {}
         
@@ -365,20 +437,8 @@ sanctuary MiddlewareManager {
 
     // Static file serving
     soul static(path, options, app) {
-        staticConfig = {
-            path: path,
-            root: options.root || process.cwd(),
-            index: options.index || "index.html",
-            dotfiles: options.dotfiles || "ignore",
-            etag: options.etag || true,
-            extensions: options.extensions || false,
-            fallthrough: options.fallthrough || true,
-            immutable: options.immutable || false,
-            lastModified: options.lastModified || true,
-            maxAge: options.maxAge || 0,
-            redirect: options.redirect || true,
-            setHeaders: options.setHeaders || null
-        }
+        staticConfig = this.mergeWithDefaults("staticFiles", options)
+        staticConfig.path = path
         
         staticMiddleware = soul(req, res, next) {
             filePath = req.path.replace(path, "")

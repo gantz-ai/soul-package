@@ -1,0 +1,226 @@
+// HtmlRenderer - Simple HTML template rendering engine for Jet Framework
+// Basic template interpolation and layouts using os, filepath, and template modules
+
+
+static sanctuary HtmlRenderer {
+    soul __genesis__() {
+        this.viewsPath = "views"
+        this.defaultLayout = "layout"
+        this.cache = {}
+        this.cacheEnabled = true
+        this.helpers = {}
+        this.templateExtension = ".html"
+    }
+    
+    // Configuration methods
+    soul setViewsPath(path) {
+        this.viewsPath = path
+        return this
+    }
+    
+    soul setDefaultLayout(layout) {
+        this.defaultLayout = layout
+        return this
+    }
+    
+    soul enableCache(enable) {
+        this.cacheEnabled = enable
+        if (!enable) {
+            this.cache = {}
+        }
+        return this
+    }
+    
+    // Template helper registration
+    soul helper(name, helperFunction) {
+        this.helpers[name] = helperFunction
+        return this
+    }
+
+    // Apply helpers to template data
+    soul applyHelpers(data) {
+        if (!data) {
+            data = {}
+        }
+        
+        return data
+    }
+    
+    // Helper method to replace all occurrences of a string
+    soul replaceAll(text, search, replacement) {
+        if (!text || !search) {
+            return text
+        }
+        
+        result = text
+        while (result.includes(search)) {
+            result = result.replace(search, replacement)
+        }
+        return result
+    }
+    
+    // Read template file using os module
+    soul readTemplate(templatePath) {
+        // Only use cache if templatePath is a string (not an array)
+        cacheKey = templatePath + ""  // Convert to string safely
+        
+        // Check cache first
+        if (this.cacheEnabled && this.cache[cacheKey]) {
+            return this.cache[cacheKey]
+        }
+        
+        try {
+            // Construct full path using filepath.join
+            // Force add .html extension since the conditional logic doesn't work in Soul
+            fullPath = filepath.join(this.viewsPath, templatePath + ".html")
+            
+            // Check if file exists
+            if (!os.exists(fullPath)) {
+                throw "Template file not found: " + fullPath
+            }
+            
+            // Read file content using os.readfile
+            content = os.readfile(fullPath)
+            
+            // Cache the content using string key
+            if (this.cacheEnabled) {
+                this.cache[cacheKey] = content
+            }
+            
+            return content
+        } catch (error) {
+            return "<p>Template not found: " + templatePath + "</p>"
+        }
+    }
+    
+    
+
+    
+
+    // Main render method using template module
+    soul render(templateConfig, data, options) {
+        try {
+            if (!templateConfig) {
+                return this.renderError("No template configuration provided")
+            }
+            
+            // Extract configuration
+            mainTemplate = templateConfig.template
+            layoutName = templateConfig.layout
+            partialNames = templateConfig.partials
+            
+            // Create config for the renderWithFiles function
+            templateFileConfig = {
+                basePath: this.viewsPath,
+                mainTemplate: mainTemplate,
+                layout: layoutName,
+                partials: partialNames
+            }
+            
+            // Use the renderWithFiles function
+            result = template.renderWithFiles(templateFileConfig, data || {})
+            
+            return result
+        } catch (error) {
+            return this.renderError("Template rendering failed: " + error)
+        }
+    }
+
+    // Apply layout to rendered content (deprecated - now handled by renderWithFiles)
+    soul applyLayout(content, layoutName, data) {
+        try {
+            layoutPath = "layouts/" + layoutName
+            if (!layoutName.endsWith(this.templateExtension)) {
+                layoutPath = layoutPath + this.templateExtension
+            }
+            
+            layoutTemplate = this.readTemplate(layoutPath)
+            if (layoutTemplate) {
+                return template.renderWithLayout(layoutTemplate, content, data || {})
+            } else {
+                return content
+            }
+        } catch (error) {
+            return content
+        }
+    }
+
+    // Render error template
+    soul renderError(message) {
+        return "<h1>Template Error</h1><p>" + message + "</p>"
+    }
+    
+    // Render string template using template module
+    soul renderString(templateString, data) {
+        if (!data) {
+            data = {}
+        }
+        
+        try {
+            processedTemplate = this.processIncludes(templateString, data)
+            return template.render(processedTemplate, data)
+        } catch (error) {
+            return "<p>Template Error: " + error + "</p>"
+        }
+    }
+    
+    // Clear template cache
+    soul clearCache() {
+        this.cache = {}
+        return this
+    }
+    
+    // Get template file statistics
+    soul getTemplateStats(templatePath) {
+        try {
+            fullPath = filepath.join(this.viewsPath, templatePath)
+            if (!templatePath.endsWith(this.templateExtension)) {
+                fullPath = fullPath + this.templateExtension
+            }
+            
+            if (os.exists(fullPath)) {
+                stats = os.stat(fullPath)
+                return {
+                    exists: true,
+                    size: stats.size,
+                    modified: stats.modtime,
+                    path: fullPath
+                }
+            } else {
+                return {
+                    exists: false,
+                    path: fullPath
+                }
+            }
+        } catch (error) {
+            return {
+                exists: false,
+                error: error,
+                path: templatePath
+            }
+        }
+    }
+    
+    // List available templates
+    soul listTemplates() {
+        try {
+            if (!os.exists(this.viewsPath)) {
+                return []
+            }
+            
+            files = os.readdir(this.viewsPath)
+            templates = []
+            
+            for (i = 0; i < files.length(); i++) {
+                entry = files[i]
+                if (!entry.isdir && entry.name.endsWith(this.templateExtension)) {
+                    templates.push(entry.name)
+                }
+            }
+            
+            return templates
+        } catch (error) {
+            return []
+        }
+    }
+}

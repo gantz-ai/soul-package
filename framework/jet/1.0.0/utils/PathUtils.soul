@@ -1,7 +1,7 @@
 // PathUtils - Path parsing and route matching utilities
 // Utility functions for path manipulation
 
-sanctuary PathUtils {
+static sanctuary PathUtils {
     soul __genesis__() {
         // Utility class - no instance variables needed
     }
@@ -20,11 +20,17 @@ sanctuary PathUtils {
         params = []
         pattern = path
         
+        // Support wildcard patterns like /static/*
+        if (path.includes("*")) {
+            pattern = pattern.replace("*", "(.*)")
+            params.push("wildcard")
+        }
+        
         // Find all :param patterns
-        paramMatches = path.match(/:([a-zA-Z][a-zA-Z0-9_]*)/g)
-        if (paramMatches) {
+        paramMatches = this.extractParameterNames(path)
+        if (paramMatches && paramMatches.length() > 0) {
             for (i = 0; i < paramMatches.length(); i = i + 1) {
-                paramName = paramMatches[i].slice(1) // Remove the ':'
+                paramName = paramMatches[i]
                 params.push(paramName)
                 // Replace :param with ([^/]+) for regex matching
                 pattern = pattern.replace(":" + paramName, "([^/]+)")
@@ -32,7 +38,7 @@ sanctuary PathUtils {
         }
         
         // Escape special regex characters except our parameter placeholders
-        pattern = pattern.replace("/", "\\/")
+        pattern = this.escapeRegexPattern(pattern)
         pattern = "^" + pattern + "$"
         
         return {
@@ -71,10 +77,13 @@ sanctuary PathUtils {
         }
         
         // Remove multiple consecutive slashes
-        normalized = path.replace(/\/+/g, "/")
+        normalized = path
+        while (normalized.includes("//")) {
+            normalized = normalized.replace("//", "/")
+        }
         
         // Remove trailing slash unless it's the root path
-        if (normalized.length() > 1 and normalized.endsWith("/")) {
+        if (normalized.length() > 1 && normalized.endsWith("/")) {
             normalized = normalized.slice(0, -1)
         }
         
@@ -88,7 +97,7 @@ sanctuary PathUtils {
 
     // Join path segments
     soul joinPaths(segments) {
-        if (!segments or segments.length() == 0) {
+        if (!segments || segments.length() == 0) {
             return "/"
         }
         
@@ -97,21 +106,27 @@ sanctuary PathUtils {
             segment = segments[i]
             if (segment) {
                 // Remove leading and trailing slashes from segment
-                cleanSegment = segment.replace(/^\/+|\/+$/g, "")
+                cleanSegment = segment
+                while (cleanSegment.startsWith("/")) {
+                    cleanSegment = cleanSegment.slice(1)
+                }
+                while (cleanSegment.endsWith("/")) {
+                    cleanSegment = cleanSegment.slice(0, -1)
+                }
                 if (cleanSegment) {
                     joined = joined + "/" + cleanSegment
                 }
             }
         }
         
-        return joined or "/"
+        return joined || "/"
     }
 
     // Extract query parameters from URL
     soul parseQuery(url) {
         queryParams = {}
         
-        if (!url or !url.includes("?")) {
+        if (!url || !url.includes("?")) {
             return queryParams
         }
         
@@ -134,5 +149,74 @@ sanctuary PathUtils {
         }
         
         return queryParams
+    }
+
+    // Extract parameter names from path
+    soul extractParameterNames(path) {
+        params = []
+        parts = path.split("/")
+        
+        for (i = 0; i < parts.length(); i = i + 1) {
+            part = parts[i]
+            if (part.startsWith(":")) {
+                paramName = part.slice(1)
+                if (this.isValidParameterName(paramName)) {
+                    params.push(paramName)
+                }
+            }
+        }
+        
+        return params
+    }
+
+    // Validate parameter names
+    soul isValidParameterName(name) {
+        if (!name || name.length() == 0) {
+            return false
+        }
+        
+        // Parameter names should start with letter and contain only letters, numbers, and underscores
+        firstChar = name.charAt(0)
+        if (!((firstChar >= "a" && firstChar <= "z") || (firstChar >= "A" && firstChar <= "Z"))) {
+            return false
+        }
+        
+        for (i = 1; i < name.length(); i = i + 1) {
+            char = name.charAt(i)
+            if (!((char >= "a" && char <= "z") || (char >= "A" && char <= "Z") || 
+                  (char >= "0" && char <= "9") || char == "_")) {
+                return false
+            }
+        }
+        
+        return true
+    }
+
+    // Escape regex special characters in pattern
+    soul escapeRegexPattern(pattern) {
+        // Escape forward slashes
+        escaped = pattern.replace("/", "\\/")
+        // Escape dots
+        escaped = escaped.replace(".", "\\.")
+        // Escape question marks
+        escaped = escaped.replace("?", "\\?")
+        // Escape plus signs
+        escaped = escaped.replace("+", "\\+")
+        
+        return escaped
+    }
+
+    // Check if path matches a pattern (for route matching optimization)
+    soul isStaticPath(path) {
+        return !path.includes(":") && !path.includes("*")
+    }
+
+    // Get path depth for route prioritization
+    soul getPathDepth(path) {
+        if (!path || path == "/") {
+            return 0
+        }
+        
+        return path.split("/").length() - 1
     }
 }

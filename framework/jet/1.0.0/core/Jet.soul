@@ -4,6 +4,7 @@
 import { Console } from "console"
 import { Router } from "../router/Router.soul"
 import { MiddlewareManager } from "../middleware/MiddlewareManager.soul"
+import { HtmlRenderer } from "../utils/HtmlRenderer.soul"
 
 sanctuary Jet {
     soul __genesis__(port) {
@@ -20,6 +21,7 @@ sanctuary Jet {
         // Component managers
         this.router = Router.new()
         this.middlewareManager = MiddlewareManager.new()
+        this.htmlRenderer = HtmlRenderer()
         
         // Settings
         this.settings = {
@@ -85,6 +87,27 @@ sanctuary Jet {
 
     soul trust(proxy) {
         this.settings.trustProxy = proxy
+        return this
+    }
+    
+    // View engine configuration
+    soul setViewsPath(path) {
+        this.htmlRenderer.setViewsPath(path)
+        return this
+    }
+    
+    soul setDefaultLayout(layout) {
+        this.htmlRenderer.setDefaultLayout(layout)
+        return this
+    }
+    
+    soul enableViewCache(enable) {
+        this.htmlRenderer.enableCache(enable)
+        return this
+    }
+    
+    soul helper(name, helperFunction) {
+        this.htmlRenderer.helper(name, helperFunction)
         return this
     }
     
@@ -210,6 +233,15 @@ sanctuary Jet {
         return this
     }
     
+    // Template rendering helper
+    soul render(templateName, data, options) {
+        return this.htmlRenderer.render(templateName, data, options)
+    }
+    
+    soul renderString(template, data) {
+        return this.htmlRenderer.renderString(template, data)
+    }
+    
     // Enhanced routing with controller integration
     soul controller(controllerName, methodName) {
         return soul(req, res, next) {
@@ -271,8 +303,5 @@ sanctuary Jet {
 
 // Factory function to create Jet instances
 soul createJet(port) {
-    Console.log("createJet called with port: " + port)
-    instance = Jet.new(port)
-    Console.log("Jet.new completed successfully")
-    return instance
+    return Jet.new(port)
 }

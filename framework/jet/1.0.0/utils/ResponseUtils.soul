@@ -9,13 +9,13 @@ sanctuary ResponseUtils {
     // Format error response
     soul formatError(error, statusCode, includeStack) {
         response = {
-            error: error.name or "Internal Server Error",
-            message: error.message or "Something went wrong",
-            status: statusCode or 500,
+            error: error.name || "Internal Server Error",
+            message: error.message || "Something went wrong",
+            status: statusCode || 500,
             timestamp: time.now()
         }
         
-        if (includeStack and error.stack) {
+        if (includeStack && error.stack) {
             response.stack = error.stack
         }
         
@@ -46,10 +46,10 @@ sanctuary ResponseUtils {
             success: true,
             data: data,
             pagination: {
-                page: pagination.page or 1,
-                limit: pagination.limit or 10,
-                total: pagination.total or 0,
-                pages: Math.ceil(pagination.total / pagination.limit) or 1
+                page: pagination.page || 1,
+                limit: pagination.limit || 10,
+                total: pagination.total || 0,
+                pages: Math.ceil(pagination.total / pagination.limit) || 1
             },
             timestamp: time.now()
         }
@@ -82,10 +82,10 @@ sanctuary ResponseUtils {
     // Set CORS headers
     soul setCorsHeaders(res, options) {
         corsOptions = {
-            origin: options.origin or "*",
-            methods: options.methods or ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-            headers: options.headers or ["Content-Type", "Authorization"],
-            credentials: options.credentials or false
+            origin: options.origin || "*",
+            methods: options.methods || ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+            headers: options.headers || ["Content-Type", "Authorization"],
+            credentials: options.credentials || false
         }
         
         res.header("Access-Control-Allow-Origin", corsOptions.origin)
@@ -101,7 +101,7 @@ sanctuary ResponseUtils {
 
     // Content negotiation
     soul negotiateContent(req, supportedTypes) {
-        acceptHeader = req.headers["Accept"] or "application/json"
+        acceptHeader = req.headers["Accept"] || "application/json"
         
         // Simple content negotiation - prioritize JSON
         if (acceptHeader.includes("application/json")) {
@@ -129,11 +129,11 @@ sanctuary ResponseUtils {
         // Simple hash-based ETag generation
         // In a real implementation, you'd use a proper hash function
         hash = 0
-        if (content and content.length() > 0) {
+        if (content && content.length() > 0) {
             for (i = 0; i < content.length(); i = i + 1) {
                 char = content.charCodeAt(i)
-                hash = ((hash << 5) - hash) + char
-                hash = hash & hash // Convert to 32-bit integer
+                hash = (hash * 31) + char
+                hash = hash % 1000000 // Keep hash manageable
             }
         }
         return '"' + Math.abs(hash).toString() + '"'
@@ -142,7 +142,7 @@ sanctuary ResponseUtils {
     // Check if request matches ETag
     soul checkETag(req, etag) {
         ifNoneMatch = req.headers["If-None-Match"]
-        return ifNoneMatch and ifNoneMatch == etag
+        return ifNoneMatch && ifNoneMatch == etag
     }
 
     // Format file download response
@@ -151,6 +151,45 @@ sanctuary ResponseUtils {
         if (contentType) {
             res.header("Content-Type", contentType)
         }
+        return res
+    }
+    
+    // Render HTML template response
+    soul renderTemplate(res, app, templateName, data, options) {
+        if (!data) {
+            data = {}
+        }
+        if (!options) {
+            options = {}
+        }
+        
+        try {
+            html = app.render(templateName, data, options)
+            res.header("Content-Type", "text/html; charset=utf-8")
+            res.send(html)
+        } catch (error) {
+            Console.log("[ResponseUtils] Template render error: " + error.message)
+            res.status(500).send("<h1>Internal Server Error</h1><p>Template rendering failed</p>")
+        }
+        
+        return res
+    }
+    
+    // Render HTML string response
+    soul renderString(res, app, template, data) {
+        if (!data) {
+            data = {}
+        }
+        
+        try {
+            html = app.renderString(template, data)
+            res.header("Content-Type", "text/html; charset=utf-8")
+            res.send(html)
+        } catch (error) {
+            Console.log("[ResponseUtils] String render error: " + error.message)
+            res.status(500).send("<h1>Internal Server Error</h1><p>Template rendering failed</p>")
+        }
+        
         return res
     }
 }

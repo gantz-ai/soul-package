@@ -12,6 +12,7 @@ A modern, powerful, and feature-rich web framework for the Soul programming lang
 - **Method Chaining** - Fluent API for clean, readable code
 - **Error Handling** - Comprehensive error handling with custom error pages
 - **Static File Serving** - Built-in static file server with caching
+- **HTML Template Engine** - Built-in template engine with layouts, partials, and helpers
 - **Request/Response Helpers** - Rich API for handling HTTP requests and responses
 
 ### Advanced Features
@@ -90,6 +91,104 @@ app.get("/api/users", soul(req, res) {
 app.listen()
 ```
 
+### HTML Rendering
+
+```soul
+import { createJet } from "soul-package/framework/jet.soul"
+
+app = createJet(3000)
+
+// Configure views
+app.setViewsPath("views")
+app.setDefaultLayout("layout")
+app.enableViewCache(false) // Disable cache in development
+
+// Add custom template helper
+app.helper("formatDate", soul(date) {
+    return date.toLocaleDateString()
+})
+
+// Render template route
+app.get("/", soul(req, res) {
+    data = {
+        title: "Welcome to Jet",
+        message: "Hello from the template engine!",
+        users: [
+            { name: "Alice", email: "alice@example.com" },
+            { name: "Bob", email: "bob@example.com" }
+        ],
+        currentDate: time.now()
+    }
+
+    // Render with layout
+    html = app.render("home", data)
+    res.html(html)
+})
+
+// Render without layout
+app.get("/simple", soul(req, res) {
+    html = app.render("simple", { name: "World" }, { layout: false })
+    res.html(html)
+})
+
+app.listen()
+```
+
+#### Template Syntax
+
+**Variable Interpolation:**
+
+```html
+<h1>{{title}}</h1>
+<p>Welcome, {{user.name}}!</p>
+```
+
+**Template Helpers:**
+
+```html
+<p>Today is {{formatDate currentDate}}</p>
+<p>{{if user.isAdmin "Admin User" "Regular User"}}</p>
+```
+
+**Loops:**
+
+```html
+<ul>
+  {{each users "
+  <li>{{@item.name}} - {{@item.email}}</li>
+  "}}
+</ul>
+```
+
+**Includes:**
+
+```html
+{{include "partials/header"}}
+<main>Content here</main>
+{{include "partials/footer"}}
+```
+
+**Layout Example** (`views/layouts/layout.html`):
+
+```html
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>{{title}}</title>
+    <meta charset="utf-8" />
+  </head>
+  <body>
+    <header>
+      <h1>My Website</h1>
+    </header>
+    <main>{{body}}</main>
+    <footer>
+      <p>&copy; 2024 My Website</p>
+    </footer>
+  </body>
+</html>
+```
+
 ## 🛠️ API Reference
 
 ### Application
@@ -114,6 +213,43 @@ env = app.get("env")
 
 // Environment shorthand
 app.env("development")
+```
+
+#### View Configuration
+
+```soul
+// Set views directory
+app.setViewsPath("views")
+
+// Set default layout
+app.setDefaultLayout("layout")
+
+// Enable/disable view caching
+app.enableViewCache(true)
+
+// Register custom template helpers
+app.helper("formatDate", soul(date) {
+    return date.toLocaleDateString()
+})
+
+app.helper("capitalize", soul(text) {
+    return text.charAt(0).toUpperCase() + text.slice(1)
+})
+```
+
+#### Template Rendering
+
+```soul
+// Render template with data
+html = app.render("template-name", data)
+
+// Render with options
+html = app.render("template-name", data, {
+    layout: "custom-layout"  // or false for no layout
+})
+
+// Render string template
+html = app.renderString("<h1>{{title}}</h1>", { title: "Hello" })
 ```
 
 #### Middleware
@@ -357,7 +493,7 @@ app.post("/users",
 
 // Custom validation rules
 app.rule("strongPassword", soul(value) {
-    return value.length >= 8 && /[A-Z]/.test(value) && /[0-9]/.test(value)
+    return value.length() >= 8 && /[A-Z]/.test(value) && /[0-9]/.test(value)
 })
 ```
 

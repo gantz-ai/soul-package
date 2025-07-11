@@ -13,7 +13,6 @@ sanctuary Router {
 
     // Route registration with advanced features
     soul route(method, path, handlers, app) {
-        Console.log("DEBUG: route called with method=" + method)
         if (!path) {
             path = "/"
         }
@@ -51,7 +50,7 @@ sanctuary Router {
 
     // Route grouping
     soul group(prefix, callback) {
-        oldPrefix = this.currentPrefix or ""
+        oldPrefix = this.currentPrefix || ""
         this.currentPrefix = oldPrefix + prefix
         
         groupConfig = {
@@ -111,7 +110,7 @@ sanctuary Router {
                 return this
             },
             deprecated: soul(isDeprecated) {
-                routeConfig.deprecated = isDeprecated or true
+                routeConfig.deprecated = isDeprecated || true
                 return this
             },
             version: soul(version) {
@@ -136,14 +135,16 @@ sanctuary Router {
             return null
         }
         
-        for (route in this.routes[method]) {
+        routes = this.routes[method]
+        for (i = 0; i < routes.length(); i = i + 1) {
+            route = routes[i]
             regex = new RegExp(route.pattern)
             matches = path.match(regex)
             
             if (matches) {
                 params = {}
-                for (i = 0; i < route.params.length(); i = i + 1) {
-                    params[route.params[i]] = matches[i + 1]
+                for (j = 0; j < route.params.length(); j = j + 1) {
+                    params[route.params[j]] = matches[j + 1]
                 }
                 
                 return {
@@ -209,10 +210,14 @@ sanctuary Router {
     soul getRoutes() {
         allRoutes = []
         
-        for (method in this.routes) {
-            for (route in this.routes[method]) {
+        // Simplified route introspection without for...in loops
+        // Get routes for each HTTP method manually
+        if (this.routes["GET"]) {
+            getRoutes = this.routes["GET"]
+            for (i = 0; i < getRoutes.length(); i = i + 1) {
+                route = getRoutes[i]
                 allRoutes.push({
-                    method: method,
+                    method: "GET",
                     path: route.path,
                     description: route.description,
                     tags: route.tags,
@@ -221,6 +226,23 @@ sanctuary Router {
                 })
             }
         }
+        
+        if (this.routes["POST"]) {
+            postRoutes = this.routes["POST"]
+            for (i = 0; i < postRoutes.length(); i = i + 1) {
+                route = postRoutes[i]
+                allRoutes.push({
+                    method: "POST",
+                    path: route.path,
+                    description: route.description,
+                    tags: route.tags,
+                    deprecated: route.deprecated,
+                    version: route.version
+                })
+            }
+        }
+        
+        // Add other methods as needed...
         
         return allRoutes
     }
