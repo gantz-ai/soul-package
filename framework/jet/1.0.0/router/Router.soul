@@ -120,40 +120,80 @@ sanctuary Router {
         }
     }
 
-    // Path parsing - simplified for now
+    // Path parsing - simplified and safe
     soul parsePath(path) {
+        if (!path) {
+            path = "/"
+        }
+        
+        // Convert to string to ensure we have a valid string
+        pathStr = path.toString()
+        
+        params = []
+        regexPattern = pathStr
+        
+        // Handle wildcards * -> (.*) BEFORE escaping
+        if (regexPattern.includes("*")) {
+            regexPattern = regexPattern.replace("*", "(.*)")
+        }
+        
+        // Handle parameter placeholders like :id (simplified)
+        if (regexPattern.includes(":")) {
+            // Simple replacement for common patterns
+            regexPattern = regexPattern.replace(":id", "([^/]+)")
+            regexPattern = regexPattern.replace(":name", "([^/]+)")
+            regexPattern = regexPattern.replace(":slug", "([^/]+)")
+        }
+        
+        // Escape dots for regex but NOT the ones in our patterns
+        // Only escape literal dots, not the ones in (.*)
+        regexPattern = regexPattern.replace(".", "\\.")
+        // Fix over-escaping of our patterns
+        regexPattern = regexPattern.replace("\\(\\.*\\)", "(.*)")
+        
+        // Add anchors
+        regexPattern = "^" + regexPattern + "$"
+        
         return {
-            path: path ? path : "/",
-            pattern: path ? ("^" + path + "$") : "^/$",
-            params: []
+            path: pathStr,
+            pattern: regexPattern,
+            params: params
         }
     }
+    
 
-    // Route matching
+    // Route matching - simplified with debugging
     soul matchRoute(method, path) {
         if (!this.routes[method]) {
             return null
         }
         
         routes = this.routes[method]
+        
         for (i = 0; i < routes.length(); i = i + 1) {
             route = routes[i]
-            regex = new RegExp(route.pattern)
-            matches = path.match(regex)
             
-            if (matches) {
-                params = {}
-                for (j = 0; j < route.params.length(); j = j + 1) {
-                    params[route.params[j]] = matches[j + 1]
+            // Simple pattern matching without regex for now
+            if (route.pattern.includes("(.*)")) {
+                // Wildcard pattern
+                prefix = route.pattern.replace("^", "").replace("(.*)$", "")
+                if (path.startsWith(prefix)) {
+                    return {
+                        route: route,
+                        params: {}
+                    }
                 }
-                
-                return {
-                    route: route,
-                    params: params
+            } else {
+                // Exact match
+                routePath = route.pattern.replace("^", "").replace("$", "")
+                if (path == routePath) {
+                    return {
+                        route: route,
+                        params: {}
+                    }
                 }
             }
         }
-        
         return null
     }
 
