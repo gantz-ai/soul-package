@@ -55,12 +55,18 @@ sanctuary MiddlewareManager {
 
     // Middleware system
     soul use(middleware, unused, app) {
+        console.log("🔍 [MIDDLEWARE MANAGER] Registering middleware: " + middleware)
+        
+        // Add middleware directly (debug logging removed for performance)
+        wrappedMiddleware = middleware
+        
         // Add middleware to apply to all paths
         this.middlewares.push({
             path: "*",
-            handler: middleware,
+            handler: wrappedMiddleware,
             type: "middleware"
         })
+        console.log("🔍 [MIDDLEWARE MANAGER] Middleware registered. Total count: " + this.middlewares.length())
         return app
     }
 
@@ -118,6 +124,8 @@ sanctuary MiddlewareManager {
         corsConfig = this.mergeWithDefaults("cors", options)
         
         corsMiddleware = soul(req, res, next) {
+            console.log("🔍 [CORS] Middleware entry")
+            
             // Set CORS headers
             res.header("Access-Control-Allow-Origin", corsConfig.origin)
             res.header("Access-Control-Allow-Methods", corsConfig.methods.join(","))
@@ -131,15 +139,19 @@ sanctuary MiddlewareManager {
                 res.header("Access-Control-Max-Age", corsConfig.maxAge.toString())
             }
             
-            if (req.method == "OPTIONS") {
+            console.log("🔍 [CORS] Checking request method...")
+            if (req && req.method == "OPTIONS") {
+                console.log("🔍 [CORS] OPTIONS request detected")
                 if (corsConfig.preflightContinue) {
                     next()
                 } else {
                     res.status(204).end()
                 }
             } else {
+                console.log("🔍 [CORS] Non-OPTIONS request, calling next()")
                 next()
             }
+            console.log("🔍 [CORS] Middleware completed")
         }
         this.middlewares.push({
             path: "*",
@@ -211,9 +223,33 @@ sanctuary MiddlewareManager {
         requests = {}
         
         rateLimitMiddleware = soul(req, res, next) {
-            key = req.ip ? req.ip : "unknown"
+            console.log("🔍 [RATE LIMIT] Middleware entry")
+            
+            // Safe key extraction with multiple fallbacks
+            key = "unknown"
+            console.log("🔍 [RATE LIMIT] Initial key set to: " + key)
+            
+            console.log("🔍 [RATE LIMIT] Checking req object...")
+            if (req) {
+                console.log("🔍 [RATE LIMIT] req exists, checking req.ip...")
+                if (req.ip) {
+                    key = req.ip
+                    console.log("🔍 [RATE LIMIT] key set to req.ip: " + key)
+                } else {
+                    console.log("🔍 [RATE LIMIT] req.ip is null/undefined")
+                }
+            } else {
+                console.log("❌ [RATE LIMIT] req is null!")
+            }
+            
             now = time.now()
             
+            // Ensure requests object exists
+            if (!requests) {
+                requests = {}
+            }
+            
+            // Initialize request tracking for this key
             if (!requests[key]) {
                 requests[key] = {
                     count: 0,
@@ -221,22 +257,29 @@ sanctuary MiddlewareManager {
                 }
             }
             
-            if (now > requests[key].resetTime) {
+            // Check if we need to reset the window
+            if (requests[key] && now > requests[key].resetTime) {
                 requests[key].count = 0
                 requests[key].resetTime = now + limitConfig.windowMs
             }
             
-            requests[key].count++
-            
-            if (requests[key].count > limitConfig.max) {
-                res.status(429).json({
-                    error: "Too Many Requests",
-                    message: limitConfig.message
-                })
-                return
+            // Increment counter safely
+            if (requests[key]) {
+                requests[key].count++
+                
+                // Check rate limit
+                if (requests[key].count > limitConfig.max) {
+                    res.status(429).json({
+                        error: "Too Many Requests",
+                        message: limitConfig.message
+                    })
+                    return
+                }
             }
             
+            console.log("🔍 [RATE LIMIT] Calling next()...")
             next()
+            console.log("🔍 [RATE LIMIT] next() completed")
         }
         this.middlewares.push({
             path: "*",
@@ -255,7 +298,10 @@ sanctuary MiddlewareManager {
         
         if (strategy == "jwt") {
             jwtMiddleware = soul(req, res, next) {
-                token = req.headers["authorization"]
+                token = null
+                if (req && req.headers) {
+                    token = req.headers["authorization"]
+                }
                 
                 if (!token) {
                     return res.status(401).json({
@@ -281,7 +327,10 @@ sanctuary MiddlewareManager {
             return app
         } else if (strategy == "basic") {
             basicMiddleware = soul(req, res, next) {
-                auth = req.headers["authorization"]
+                auth = null
+                if (req && req.headers) {
+                    auth = req.headers["authorization"]
+                }
                 
                 if (!auth || !auth.startsWith("Basic ")) {
                     return res.status(401).json({
@@ -302,7 +351,10 @@ sanctuary MiddlewareManager {
             return app
         } else if (strategy == "session") {
             sessionMiddleware = soul(req, res, next) {
-                sessionId = req.cookies["session-id"]
+                sessionId = null
+                if (req && req.cookies) {
+                    sessionId = req.cookies["session-id"]
+                }
                 
                 if (!sessionId) {
                     return res.status(401).json({
@@ -461,6 +513,195 @@ sanctuary MiddlewareManager {
             type: "middleware"
         })
         return app
+    }
+
+    // JSON body parsing middleware
+    soul json(options, app) {
+        jsonConfig = {
+            limit: options && options.limit ? options.limit : "10mb",
+            strict: options && options.strict ? options.strict : true,
+            type: options && options.type ? options.type : "application/json"
+        }
+        
+        jsonMiddleware = soul(req, res, next) {
+            console.log("🔍 [JSON MIDDLEWARE] Processing request: " + req.method + " " + req.path)
+            
+            // Only parse JSON for POST, PUT, PATCH requests
+            if (req.method == "POST" || req.method == "PUT" || req.method == "PATCH") {
+                console.log("🔍 [JSON MIDDLEWARE] Request method requires body parsing")
+                
+                // Check content type with multiple header name variations
+                contentType = ""
+                if (req.headers) {
+                    // Try different header name variations
+                    if (req.headers["content-type"]) {
+                        contentType = req.headers["content-type"]
+                    } else if (req.headers["Content-Type"]) {
+                        contentType = req.headers["Content-Type"]
+                    } else if (req.headers["CONTENT-TYPE"]) {
+                        contentType = req.headers["CONTENT-TYPE"]
+                    }
+                }
+                console.log("🔍 [JSON MIDDLEWARE] Content-Type: '" + contentType + "'")
+                console.log("🔍 [JSON MIDDLEWARE] All headers: " + req.headers)
+                
+                // More flexible content type checking
+                isJsonContent = false
+                if (contentType) {
+                    lowerContentType = contentType.toLowerCase()
+                    isJsonContent = lowerContentType.includes("application/json") || 
+                                   lowerContentType.includes("json") ||
+                                   lowerContentType == "application/json"
+                }
+                console.log("🔍 [JSON MIDDLEWARE] Is JSON content: " + isJsonContent)
+                
+                if (isJsonContent) {
+                    console.log("🔍 [JSON MIDDLEWARE] JSON content type detected, parsing body...")
+                    
+                    // Read raw body and parse as JSON
+                    if (req.body) {
+                        console.log("🔍 [JSON MIDDLEWARE] Raw body: " + req.body)
+                        try {
+                            req.json = JSON.parse(req.body)
+                            console.log("🔍 [JSON MIDDLEWARE] Successfully parsed JSON")
+                            console.log("🔍 [JSON MIDDLEWARE] Parsed data keys: " + Object.keys(req.json).join(", "))
+                        } catch (parseError) {
+                            console.log("❌ [JSON MIDDLEWARE] JSON parse error: " + parseError)
+                            return res.status(400).json({
+                                error: "Bad Request",
+                                message: "Invalid JSON in request body"
+                            })
+                        }
+                    } else {
+                        console.log("❌ [JSON MIDDLEWARE] No body found in request")
+                        req.json = {}
+                    }
+                } else {
+                    console.log("🔍 [JSON MIDDLEWARE] Non-JSON content type, skipping parsing")
+                    req.json = null
+                }
+            } else {
+                console.log("🔍 [JSON MIDDLEWARE] GET/HEAD/OPTIONS request, no body parsing needed")
+                req.json = null
+            }
+            
+            next()
+        }
+        
+        this.middlewares.push({
+            path: "*",
+            handler: jsonMiddleware,
+            type: "middleware"
+        })
+        return app
+    }
+
+    // URL-encoded body parsing middleware
+    soul urlencoded(options, app) {
+        urlencodedConfig = {
+            extended: options && options.extended ? options.extended : true,
+            limit: options && options.limit ? options.limit : "10mb"
+        }
+        
+        urlencodedMiddleware = soul(req, res, next) {
+            // Only parse for POST, PUT, PATCH requests
+            if (req.method == "POST" || req.method == "PUT" || req.method == "PATCH") {
+                // Check content type
+                contentType = ""
+                if (req.headers && req.headers["content-type"]) {
+                    contentType = req.headers["content-type"]
+                }
+                
+                if (contentType.includes("application/x-www-form-urlencoded")) {
+                    console.log("🔍 [URLENCODED MIDDLEWARE] URL-encoded content type detected")
+                    
+                    // Parse URL-encoded body
+                    if (req.body) {
+                        try {
+                            req.form = this.parseUrlEncoded(req.body)
+                            console.log("🔍 [URLENCODED MIDDLEWARE] Successfully parsed form data")
+                        } catch (parseError) {
+                            console.log("❌ [URLENCODED MIDDLEWARE] Parse error: " + parseError)
+                            return res.status(400).json({
+                                error: "Bad Request",
+                                message: "Invalid form data"
+                            })
+                        }
+                    } else {
+                        req.form = {}
+                    }
+                } else {
+                    req.form = null
+                }
+            } else {
+                req.form = null
+            }
+            
+            next()
+        }
+        
+        this.middlewares.push({
+            path: "*",
+            handler: urlencodedMiddleware,
+            type: "middleware"
+        })
+        return app
+    }
+    
+    // Helper function to parse URL-encoded data
+    soul parseUrlEncoded(body) {
+        result = {}
+        pairs = body.split("&")
+        
+        for (i = 0; i < pairs.length(); i = i + 1) {
+            if (pairs[i] && pairs[i].length() > 0) {
+                pair = pairs[i].split("=")
+                if (pair.length() >= 2) {
+                    key = this.urlDecode(pair[0])
+                    value = this.urlDecode(pair[1])
+                    result[key] = value
+                }
+            }
+        }
+        
+        return result
+    }
+    
+    // Simple URL decoding
+    soul urlDecode(str) {
+        if (!str) {
+            return ""
+        }
+        
+        // Replace + with spaces
+        decoded = str.replace("+", " ")
+        
+        // Basic percent decoding (simplified)
+        decoded = decoded.replace("%20", " ")
+        decoded = decoded.replace("%21", "!")
+        decoded = decoded.replace("%22", "\"")
+        decoded = decoded.replace("%23", "#")
+        decoded = decoded.replace("%24", "$")
+        decoded = decoded.replace("%25", "%")
+        decoded = decoded.replace("%26", "&")
+        decoded = decoded.replace("%27", "'")
+        decoded = decoded.replace("%28", "(")
+        decoded = decoded.replace("%29", ")")
+        decoded = decoded.replace("%2A", "*")
+        decoded = decoded.replace("%2B", "+")
+        decoded = decoded.replace("%2C", ",")
+        decoded = decoded.replace("%2D", "-")
+        decoded = decoded.replace("%2E", ".")
+        decoded = decoded.replace("%2F", "/")
+        decoded = decoded.replace("%3A", ":")
+        decoded = decoded.replace("%3B", ";")
+        decoded = decoded.replace("%3C", "<")
+        decoded = decoded.replace("%3D", "=")
+        decoded = decoded.replace("%3E", ">")
+        decoded = decoded.replace("%3F", "?")
+        decoded = decoded.replace("%40", "@")
+        
+        return decoded
     }
 
     // Error handling

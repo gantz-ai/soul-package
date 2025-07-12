@@ -151,10 +151,17 @@ sanctuary Jet {
     }
     
     soul getController(name) {
+        if (!this.controllers) {
+            return null
+        }
+        
         return this.controllers[name]
     }
     
     soul getService(name) {
+        if (!this.services) {
+            return null
+        }
         return this.services[name]
     }
     
@@ -190,6 +197,14 @@ sanctuary Jet {
 
     soul auth(strategy, options) {
         return this.middlewareManager.auth(strategy, options, this)
+    }
+
+    soul json(options) {
+        return this.middlewareManager.json(options, this)
+    }
+
+    soul urlencoded(options) {
+        return this.middlewareManager.urlencoded(options, this)
     }
 
     // Enhanced static file serving
@@ -420,24 +435,89 @@ sanctuary Jet {
     
     // Enhanced routing with controller integration
     soul controller(controllerName, methodName) {
+        console.log("🔍 [CONTROLLER SETUP] Creating controller wrapper for " + controllerName + "." + methodName)
+        console.log("🔍 [CONTROLLER SETUP] this: " + this)
+        console.log("🔍 [CONTROLLER SETUP] this.controllers: " + this.controllers)
+        
+        // Capture the app context
+        app = this
+        
         return soul(req, res, next) {
-            controller = this.getController(controllerName)
-            if (!controller) {
+            console.log("🔍 [CONTROLLER] " + controllerName + "." + methodName + " called")
+            console.log("🔍 [CONTROLLER] app context: " + app)
+            console.log("🔍 [CONTROLLER] app.controllers: " + app.controllers)
+            
+            try {
+                // Safely get controller with null checks
+                if (!controllerName) {
+                    return res.status(500).json({
+                        error: "Internal Server Error",
+                        message: "Invalid controller name"
+                    })
+                }
+                
+                if (!methodName) {
+                    return res.status(500).json({
+                        error: "Internal Server Error",
+                        message: "Invalid method name"
+                    })
+                }
+                
+                console.log("🔍 [CONTROLLER] Getting controller: " + controllerName)
+                controller = app.getController(controllerName)
+                console.log("🔍 [CONTROLLER] Controller retrieved: " + controller)
+                
+                if (!controller) {
+                    console.log("❌ [CONTROLLER] Controller not found: " + controllerName)
+                    return res.status(500).json({
+                        error: "Internal Server Error",
+                        message: "Controller '" + controllerName + "' not found"
+                    })
+                }
+                
+                console.log("🔍 [CONTROLLER] Checking if method exists: " + methodName)
+                
+                // For Soul class instances, we need to call methods directly
+                // We can't use bracket notation to access methods dynamically
+                console.log("🔍 [CONTROLLER] Calling method directly on controller instance")
+                
+                if (!controller) {
+                    console.log("❌ [CONTROLLER] Controller is null")
+                    return res.status(500).json({
+                        error: "Internal Server Error", 
+                        message: "Controller '" + controllerName + "' is null"
+                    })
+                }
+                
+                // Call controller method safely - use conditional for known methods
+                console.log("🔍 [CONTROLLER] About to call method: " + methodName)
+                
+                if (methodName == "login") {
+                    console.log("🔍 [CONTROLLER] Calling login method")
+                    controller.login(req, res)
+                } else if (methodName == "register") {
+                    console.log("🔍 [CONTROLLER] Calling register method")
+                    controller.register(req, res)
+                } else if (methodName == "verify") {
+                    console.log("🔍 [CONTROLLER] Calling verify method")
+                    controller.verify(req, res)
+                } else {
+                    console.log("❌ [CONTROLLER] Unknown method: " + methodName)
+                    return res.status(500).json({
+                        error: "Internal Server Error",
+                        message: "Method '" + methodName + "' not supported"
+                    })
+                }
+                
+                console.log("🔍 [CONTROLLER] method call completed")
+                
+            } catch (error) {
+                console.log("❌ Controller error: " + error)
                 return res.status(500).json({
                     error: "Internal Server Error",
-                    message: "Controller '" + controllerName + "' not found"
+                    message: "Error executing controller method"
                 })
             }
-            
-            if (!controller[methodName]) {
-                return res.status(500).json({
-                    error: "Internal Server Error", 
-                    message: "Method '" + methodName + "' not found in controller '" + controllerName + "'"
-                })
-            }
-            
-            // Call controller method
-            controller[methodName](req, res, next)
         }
     }
 

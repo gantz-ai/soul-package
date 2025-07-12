@@ -204,8 +204,10 @@ sanctuary Router {
             getRoutes = this.routes["GET"]
             for (i = 0; i < getRoutes.length(); i = i + 1) {
                 route = getRoutes[i]
-                handler = route.handlers[0]
-                server.get(route.path, handler)
+                if (route && route.handlers && route.handlers.length() > 0) {
+                    handler = route.handlers[0]
+                    server.get(route.path, handler)
+                }
             }
         }
         
@@ -213,8 +215,10 @@ sanctuary Router {
             postRoutes = this.routes["POST"]
             for (i = 0; i < postRoutes.length(); i = i + 1) {
                 route = postRoutes[i]
-                handler = route.handlers[0]
-                server.post(route.path, handler)
+                if (route && route.handlers && route.handlers.length() > 0) {
+                    handler = route.handlers[0]
+                    server.post(route.path, handler)
+                }
             }
         }
         
@@ -222,8 +226,10 @@ sanctuary Router {
             putRoutes = this.routes["PUT"]
             for (i = 0; i < putRoutes.length(); i = i + 1) {
                 route = putRoutes[i]
-                handler = route.handlers[0]
-                server.put(route.path, handler)
+                if (route && route.handlers && route.handlers.length() > 0) {
+                    handler = route.handlers[0]
+                    server.put(route.path, handler)
+                }
             }
         }
         
@@ -231,8 +237,10 @@ sanctuary Router {
             deleteRoutes = this.routes["DELETE"]
             for (i = 0; i < deleteRoutes.length(); i = i + 1) {
                 route = deleteRoutes[i]
-                handler = route.handlers[0]
-                server.delete(route.path, handler)
+                if (route && route.handlers && route.handlers.length() > 0) {
+                    handler = route.handlers[0]
+                    server.delete(route.path, handler)
+                }
             }
         }
         
@@ -240,8 +248,10 @@ sanctuary Router {
             patchRoutes = this.routes["PATCH"]
             for (i = 0; i < patchRoutes.length(); i = i + 1) {
                 route = patchRoutes[i]
-                handler = route.handlers[0]
-                server.patch(route.path, handler)
+                if (route && route.handlers && route.handlers.length() > 0) {
+                    handler = route.handlers[0]
+                    server.patch(route.path, handler)
+                }
             }
         }
     }
