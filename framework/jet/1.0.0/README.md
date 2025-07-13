@@ -1,67 +1,314 @@
-# Jet Framework
+# Jet Framework 🚀
 
-A modern, powerful, and feature-rich web framework for the Soul programming language. Jet is inspired by Express.js and other popular web frameworks, but built specifically for Soul with advanced features like built-in authentication, validation, database integration, and real-time capabilities.
+[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/soul-lang/soul-package)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](https://opensource.org/licenses/MIT)
+[![Soul](https://img.shields.io/badge/soul-compatible-purple.svg)](https://soul-lang.org)
+
+A modern, powerful, and enterprise-grade web framework for the Soul programming language. Jet combines the simplicity of Express.js with the robustness of enterprise frameworks, built specifically for Soul with advanced features like built-in authentication, validation, database integration, real-time capabilities, and comprehensive security measures.
+
+## 🌟 Why Choose Jet?
+
+- **🔥 Performance First** - Built on Soul's high-performance runtime with zero-copy optimizations
+- **🛡️ Security by Default** - Enterprise-grade security features built-in, not bolted-on
+- **🔧 Developer Experience** - Intuitive API with excellent TypeScript-like type safety
+- **🚀 Production Ready** - Battle-tested features for scalable applications
+- **🔌 Extensible** - Rich plugin ecosystem and flexible architecture
+- **📚 Well Documented** - Comprehensive documentation with real-world examples
 
 ## 🚀 Features
 
-### Core Features
+### Core Web Server
+- **HTTP Server** - Built on Soul's HTTP module with configurable port and settings
+- **Routing System** - HTTP method routing (GET, POST, PUT, DELETE, etc.) with path parameters
+- **Middleware Pipeline** - Composable middleware system with request/response processing
+- **Static File Serving** - Built-in static file handler with MIME type detection and security
+- **Template Engine** - HTML rendering with variable interpolation, layouts, and helpers
+- **Error Handling** - Global error handlers with custom error pages
 
-- **Fast HTTP Server** - Built on Soul's HTTP module with excellent performance
-- **Flexible Routing** - Support for path parameters, query strings, and route groups
-- **Middleware System** - Composable middleware with built-in and custom options
-- **Method Chaining** - Fluent API for clean, readable code
-- **Error Handling** - Comprehensive error handling with custom error pages
-- **Static File Serving** - Built-in static file server with caching
-- **HTML Template Engine** - Built-in template engine with layouts, partials, and helpers
-- **Request/Response Helpers** - Rich API for handling HTTP requests and responses
+### Built-in Middleware
+- **CORS Support** - Cross-Origin Resource Sharing with configurable origins and headers
+- **Security Headers** - Helmet-style security middleware (XSS, frame options, CSP)
+- **Rate Limiting** - Request rate limiting with configurable windows and thresholds
+- **Compression** - Response compression middleware
+- **Request Logging** - Built-in request/response logging
 
-### Advanced Features
+### Architecture Components
+- **Route Groups** - Organize routes with prefixes and shared middleware
+- **Fluent API** - Method chaining for route configuration
+- **Controller Integration** - MVC pattern support with controller registration
+- **Service Layer** - Service and repository pattern support
+- **Performance Tracking** - Basic performance metrics and health checks
 
-- **Authentication System** - JWT, Session, Basic Auth, and API Key strategies
-- **Authorization** - Role-based and permission-based access control
-- **Validation Engine** - Comprehensive request validation with custom rules
-- **Database Integration** - Multi-database support with ORM-like features
-- **Real-time Support** - WebSocket integration for real-time features
-- **Caching** - Multiple caching strategies and adapters
-- **Rate Limiting** - Configurable rate limiting with multiple strategies
-- **Security Headers** - Built-in security middleware (Helmet equivalent)
-- **CORS Support** - Flexible Cross-Origin Resource Sharing
-- **Compression** - Response compression with multiple algorithms
-- **Logging** - Structured logging with request tracking
-- **Metrics** - Built-in performance monitoring and metrics
-- **Plugin System** - Extensible architecture with custom plugins
-- **Hook System** - Lifecycle hooks for custom logic
-- **OpenAPI Generation** - Automatic API documentation generation
+### Plugin System
+- **Authentication Plugin** - JWT, session, and API key authentication strategies
+- **Database Plugin** - Database integration and ORM-like features
+- **Validation Plugin** - Request validation with custom rules
+- **Extensible Architecture** - Plugin system for adding custom functionality
 
 ## 📦 Installation
 
-```bash
-# Clone the Soul framework
-git clone https://github.com/soul-lang/soul-package
-cd soul-package/framework
+### Prerequisites
 
-# Or include in your Soul project
+- Soul Programming Language (v2.0.0 or higher)
+- Operating System: Linux, macOS, or Windows
+- Memory: Minimum 512MB RAM, Recommended 2GB+
+- Network: Internet connection for initial setup
+
+### Installation Methods
+
+#### Method 1: Soul Package Manager (Recommended)
+
+```bash
+# Install via Soul package manager
+soul install jet@1.0.0
+
+# Create new Jet project
+soul create my-jet-app --template=jet
+cd my-jet-app
+```
+
+#### Method 2: Git Clone
+
+```bash
+# Clone the Soul framework repository
+git clone https://github.com/soul-lang/soul-package.git
+cd soul-package/framework/jet
+
+# Copy to your project
+cp -r . /path/to/your/project/
+```
+
+#### Method 3: Direct Import
+
+```soul
+// In your Soul project file
 import { createJet } from "soul-package/framework/jet.soul"
+
+// Or import specific modules
+import { 
+    createJet, 
+    Router, 
+    Middleware, 
+    Plugin 
+} from "soul-package/framework/jet.soul"
+```
+
+### Project Initialization
+
+```bash
+# Initialize new Jet project with starter template
+soul init jet-app
+cd jet-app
+
+# Install dependencies
+soul deps install
+
+# Start development server
+soul dev
+```
+
+### Verification
+
+```soul
+// test-installation.soul
+import { createJet } from "soul-package/framework/jet.soul"
+
+app = createJet(3000)
+
+app.get("/health", soul(req, res) {
+    res.json({ 
+        status: "ok", 
+        framework: "Jet",
+        version: "1.0.0",
+        timestamp: Date.now()
+    })
+})
+
+app.listen(soul() {
+    Console.log("✅ Jet framework installed successfully!")
+    Console.log("🌐 Visit: http://localhost:3000/health")
+})
+```
+
+### Environment Setup
+
+```bash
+# Create environment configuration
+echo "PORT=3000
+NODE_ENV=development
+JWT_SECRET=your-secret-key
+DB_URL=postgres://localhost:5432/jetapp" > .env
+
+# Create basic project structure
+mkdir -p {routes,middleware,models,config,public,tests}
 ```
 
 ## 🏃‍♂️ Quick Start
 
-### Basic Server
+### 🚀 Basic Server (30 seconds)
 
 ```soul
 import { createJet } from "soul-package/framework/jet.soul"
 
-// Create app
+// Create app instance with port
 app = createJet(3000)
 
-// Basic route
+// Configure environment
+app.env("development")
+app.set("trustProxy", false)
+
+// Basic route with response helpers
 app.get("/", soul(req, res) {
-    res.json({ message: "Hello from Jet!" })
+    res.json({ 
+        message: "Hello from Jet!",
+        timestamp: time.now(),
+        version: "1.0.0"
+    })
+})
+
+// RESTful API endpoints
+app.get("/api/status", soul(req, res) {
+    res.status(200).json({ 
+        status: "healthy", 
+        uptime: time.now() - app.startTime,
+        version: "1.0.0"
+    })
+})
+
+app.post("/api/echo", soul(req, res) {
+    res.json({ echo: req.body, headers: req.headers })
+})
+
+// Health check endpoint
+app.get("/health", soul(req, res) {
+    res.json(app.health())
 })
 
 // Start server
 app.listen(soul() {
-    Console.log("🚀 Server running on port 3000")
+    Console.log("🚀 Jet server running on port 3000")
+    Console.log("🌐 Visit: http://localhost:3000")
+    Console.log("🏥 Health check: http://localhost:3000/health")
+})
+```
+
+### ⚡ Production-Ready Server (2 minutes)
+
+```soul
+import { createJet } from "soul-package/framework/jet.soul"
+
+// Create production-configured app
+app = createJet(8080)
+app.env("production")
+app.set("trustProxy", true)
+
+// Security middleware stack
+app.use(app.helmet({ contentSecurityPolicy: true, frameguard: true }))
+app.use(app.cors({ 
+    origin: ["https://example.com", "https://app.example.com"],
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true
+}))
+app.use(app.rateLimit({ windowMs: 15 * 60 * 1000, max: 100 }))
+app.use(app.compression({ level: 6, threshold: 1024 }))
+
+// Request logging middleware
+app.use(soul(req, res, next) {
+    startTime = time.now()
+    app.logger.info("Request: " + req.method + " " + req.path)
+    
+    // Override res.end to log completion
+    originalEnd = res.end
+    res.end = soul(data) {
+        duration = time.now() - startTime
+        app.logger.info("Response: " + res.statusCode + " in " + duration + "ms")
+        originalEnd.call(res, data)
+    }
+    
+    next()
+})
+
+// Static file serving
+app.use("/static", app.static("/static", "./public"))
+
+// API routes with route groups
+app.get("/", soul(req, res) {
+    res.json({ 
+        message: "Welcome to Jet API",
+        version: "1.0.0",
+        environment: app.get("env")
+    })
+})
+
+// Authentication endpoints
+app.post("/auth/login", soul(req, res) {
+    // Basic authentication example
+    if (req.body.username == "admin" && req.body.password == "secret") {
+        res.json({ 
+            token: "jwt-token-here",
+            expiresIn: 3600,
+            user: { id: 1, username: "admin" }
+        })
+    } else {
+        res.status(401).json({ error: "Invalid credentials" })
+    }
+})
+
+// Protected routes using fluent API
+app.get("/api/users", soul(req, res) {
+    res.json({ 
+        users: [
+            { id: 1, name: "Alice", email: "alice@example.com" },
+            { id: 2, name: "Bob", email: "bob@example.com" }
+        ]
+    })
+})
+.description("Get all users")
+.cache({ ttl: 300 })
+
+// Health check endpoint
+app.get("/health", soul(req, res) {
+    res.json(app.health())
+})
+
+// Metrics endpoint (production monitoring)
+app.get("/metrics", soul(req, res) {
+    metrics = {
+        requests: app.performance.requests,
+        errors: app.performance.errors,
+        avgResponseTime: app.performance.avgResponseTime,
+        uptime: time.now() - app.performance.startTime,
+        memory: {
+            // Add memory usage if available
+            used: "N/A"
+        }
+    }
+    res.json(metrics)
+})
+
+// Global error handler
+app.error(soul(error, req, res, next) {
+    app.logger.error("Error: " + error.message)
+    
+    if (res.headersSent) {
+        return next(error)
+    }
+    
+    statusCode = error.status || 500
+    message = app.get("env") == "production" ? "Internal Server Error" : error.message
+    
+    res.status(statusCode).json({
+        error: message,
+        timestamp: time.now()
+    })
+})
+
+// Start server with production logging
+app.setStartTime(time.now())
+app.listen(soul() {
+    app.logger.info("🚀 Jet server started on port " + app.port)
+    app.logger.info("📍 Environment: " + app.get("env"))
+    app.logger.info("🌐 Visit: http://localhost:" + app.port)
 })
 ```
 
@@ -390,53 +637,77 @@ app.get("/", soul(req, res) {
 
 ### Built-in Middleware
 
-#### Security
+#### CORS Middleware
 
 ```soul
-// CORS
+// Basic CORS
+app.use(app.cors())
+
+// Advanced CORS configuration
 app.use(app.cors({
-    origin: "https://example.com",
-    methods: ["GET", "POST"],
+    origin: "*",                    // or specific domain
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     headers: ["Content-Type", "Authorization"],
-    credentials: true
-}))
-
-// Security headers
-app.use(app.helmet({
-    contentSecurityPolicy: true,
-    frameguard: true,
-    hsts: true
-}))
-
-// Rate limiting
-app.use(app.rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // limit each IP to 100 requests per windowMs
-    message: "Too many requests"
+    credentials: false,
+    maxAge: 86400,
+    preflightContinue: false
 }))
 ```
 
-#### Utilities
+#### Security Headers (Helmet)
 
 ```soul
-// Compression
+// Basic security headers
+app.use(app.helmet())
+
+// Custom security configuration
+app.use(app.helmet({
+    contentSecurityPolicy: true,    // CSP header
+    frameguard: true,              // X-Frame-Options
+    hidePoweredBy: true,           // Remove X-Powered-By
+    noSniff: true,                 // X-Content-Type-Options
+    xssFilter: true                // X-XSS-Protection
+}))
+```
+
+#### Rate Limiting
+
+```soul
+// Basic rate limiting
+app.use(app.rateLimit())
+
+// Custom rate limiting
+app.use(app.rateLimit({
+    windowMs: 900000,              // 15 minutes
+    max: 100,                      // Max requests per window
+    message: "Too many requests"   // Error message
+}))
+```
+
+#### Response Compression
+
+```soul
+// Basic compression
+app.use(app.compression())
+
+// Custom compression settings
 app.use(app.compression({
-    level: 6,
-    threshold: 1024
+    level: 6,                      // Compression level (1-9)
+    threshold: 1024,               // Minimum size to compress
+    filter: null                   // Custom filter function
 }))
+```
 
-// Static files
-app.use("/static", app.static("./public", {
-    maxAge: 86400000, // 1 day
-    etag: true
-}))
+#### Static File Serving
 
-// Body parsing (automatic)
-app.use(soul(req, res, next) {
-    // JSON parsing is automatic
-    data = req.json
-    next()
-})
+```soul
+// Serve static files from public directory
+app.static("/static", "./public")
+
+// Multiple static directories
+app.static("/css", "./assets/css")
+app.static("/js", "./assets/js")
+app.static("/images", "./assets/images")
 ```
 
 ### Authentication
@@ -560,63 +831,66 @@ app.get("/async", soul(req, res, next) {
 })
 ```
 
-### Plugins
+### Architecture Components
 
 ```soul
-// Create custom plugin
-MyPlugin = {
-    install: soul(app, options) {
-        app.myFeature = soul() {
-            return "Custom feature"
-        }
+// Controller registration and usage
+UserController = {
+    login: soul(req, res) {
+        // Authentication logic
+        res.json({ token: "jwt-token", user: req.body.username })
+    },
+    register: soul(req, res) {
+        // Registration logic  
+        res.json({ success: true, user: req.body })
     }
 }
 
-// Use plugin
-app.plugin(MyPlugin, { option: "value" })
+app.registerController("UserController", UserController)
+
+// Use controller in routes
+app.post("/auth/login", app.controller("UserController", "login"))
+app.post("/auth/register", app.controller("UserController", "register"))
 ```
 
-### Hooks
-
 ```soul
-// Lifecycle hooks
-app.hook("beforeStart", soul(app) {
-    Console.log("Server starting...")
-})
+// Service registration
+UserService = {
+    findUser: soul(id) {
+        // User lookup logic
+        return { id: id, name: "User " + id }
+    }
+}
 
-app.hook("afterStart", soul(app) {
-    Console.log("Server started!")
-})
+app.registerService("UserService", UserService)
 
-app.hook("beforeStop", soul(app) {
-    Console.log("Server stopping...")
-})
+// Repository pattern
+UserRepository = {
+    save: soul(user) {
+        // Save user logic
+        return user
+    }
+}
 
-app.hook("afterStop", soul(app) {
-    Console.log("Server stopped!")
-})
+app.registerRepository("UserRepository", UserRepository)
 ```
 
-### Monitoring
+### Health Monitoring
 
 ```soul
-// Health check
+// Built-in health check
 app.get("/health", soul(req, res) {
     res.json(app.health())
 })
 
-// Metrics
+// Performance metrics
 app.get("/metrics", soul(req, res) {
     res.json({
         requests: app.performance.requests,
         errors: app.performance.errors,
-        uptime: Date.now() - app.performance.startTime
+        avgResponseTime: app.performance.avgResponseTime,
+        startTime: app.performance.startTime
     })
-})
-
-// OpenAPI documentation
-app.get("/api/docs", soul(req, res) {
-    res.json(app.openapi())
 })
 ```
 
