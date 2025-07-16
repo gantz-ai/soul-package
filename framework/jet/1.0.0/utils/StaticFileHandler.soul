@@ -4,93 +4,93 @@
 import { PathUtils } from "./PathUtils.soul"
 
 sanctuary StaticFileHandler {
+
     soul __genesis__() {
         // MIME type mappings
         this.mimeTypes = {
             // Text files
-            "css": "text/css; charset=utf-8",
-            "js": "application/javascript; charset=utf-8",
-            "mjs": "application/javascript; charset=utf-8",
-            "html": "text/html; charset=utf-8",
-            "htm": "text/html; charset=utf-8",
-            "txt": "text/plain; charset=utf-8",
-            "xml": "application/xml; charset=utf-8",
-            "json": "application/json; charset=utf-8",
-            
+            "css": "text/css; charset=utf-8", 
+            "js": "application/javascript; charset=utf-8", 
+            "mjs": "application/javascript; charset=utf-8", 
+            "html": "text/html; charset=utf-8", 
+            "htm": "text/html; charset=utf-8", 
+            "txt": "text/plain; charset=utf-8", 
+            "xml": "application/xml; charset=utf-8", 
+            "json": "application/json; charset=utf-8", 
+
             // Images
-            "png": "image/png",
-            "jpg": "image/jpeg",
-            "jpeg": "image/jpeg",
-            "gif": "image/gif",
-            "svg": "image/svg+xml",
-            "ico": "image/x-icon",
-            "webp": "image/webp",
-            
+            "png": "image/png", 
+            "jpg": "image/jpeg", 
+            "jpeg": "image/jpeg", 
+            "gif": "image/gif", 
+            "svg": "image/svg+xml", 
+            "ico": "image/x-icon", 
+            "webp": "image/webp", 
+
             // Fonts
-            "woff": "font/woff",
-            "woff2": "font/woff2",
-            "ttf": "font/ttf",
-            "otf": "font/otf",
-            "eot": "application/vnd.ms-fontobject",
-            
+            "woff": "font/woff", 
+            "woff2": "font/woff2", 
+            "ttf": "font/ttf", 
+            "otf": "font/otf", 
+            "eot": "application/vnd.ms-fontobject", 
+
             // Audio/Video
-            "mp3": "audio/mpeg",
-            "mp4": "video/mp4",
-            "webm": "video/webm",
-            "ogg": "audio/ogg",
-            
+            "mp3": "audio/mpeg", 
+            "mp4": "video/mp4", 
+            "webm": "video/webm", 
+            "ogg": "audio/ogg", 
+
             // Archives
-            "zip": "application/zip",
-            "pdf": "application/pdf",
-            
+            "zip": "application/zip", 
+            "pdf": "application/pdf", 
+
             // Default
             "default": "application/octet-stream"
         }
-        
+
         this.staticRoutes = []
     }
-    
+
     // Register static directory
     soul registerStaticDirectory(app, urlPrefix, localPath) {
-        
+
         // Store the static route configuration
         staticRoute = {
-            urlPrefix: urlPrefix,
+            urlPrefix: urlPrefix, 
             localPath: localPath
         }
         this.staticRoutes.push(staticRoute)
-        
+
         // Register multiple wildcard patterns for nested paths
         app.get(urlPrefix + "/*", soul(req, res) {
             this.handleStaticFile(req, res, urlPrefix, localPath)
         })
-        
+
         app.get(urlPrefix + "/*/*", soul(req, res) {
             this.handleStaticFile(req, res, urlPrefix, localPath)
         })
-        
+
         app.get(urlPrefix + "/*/*/*", soul(req, res) {
             this.handleStaticFile(req, res, urlPrefix, localPath)
         })
-        
+
         // Also try without wildcard for direct matches
         app.get(urlPrefix, soul(req, res) {
             this.handleStaticFile(req, res, urlPrefix, localPath)
         })
-        
+
     }
-    
+
     // Handle static file requests
     soul handleStaticFile(req, res, urlPrefix, localPath) {
         try {
             // Extract the file path from the URL
             requestPath = req.path
-            
-            
+
             // Remove the URL prefix to get the relative file path
             if (requestPath.startsWith(urlPrefix)) {
                 relativePath = requestPath.substring(urlPrefix.length())
-                
+
                 // Remove leading slash if present
                 if (relativePath.startsWith("/")) {
                     relativePath = relativePath.substring(1)
@@ -98,29 +98,26 @@ sanctuary StaticFileHandler {
             } else {
                 relativePath = requestPath
             }
-            
-            
+
             // Prevent directory traversal attacks
             if (relativePath.includes("..") || relativePath.includes("~")) {
                 res.status(403).send("Access denied")
-                return
+                return 
             }
-            
+
             // Construct full file path
             fullPath = localPath + "/" + relativePath
-            
-            
+
             // Check if file exists and read it
             content = io.read(fullPath)
-            
+
             // Get file extension and MIME type
             extension = this.getFileExtension(relativePath)
             mimeType = this.getMimeType(extension)
-            
-            
+
             // Set appropriate headers
             res.header("Content-Type", mimeType)
-            
+
             // Cache headers (configurable based on environment)
             if (this.isDevelopment()) {
                 // Development: No cache + force revalidation
@@ -138,32 +135,32 @@ sanctuary StaticFileHandler {
                 res.header("Pragma", "no-cache")
                 res.header("Expires", "0")
             }
-            
+
             // Security headers
             res.header("X-Content-Type-Options", "nosniff")
-            
+
             // Send the file content
             res.send(content)
-            
+
         } catch (error) {
             res.status(404).send("File not found")
         }
     }
-    
+
     // Get file extension from path
     soul getFileExtension(filePath) {
         if (!filePath || filePath.length() == 0) {
             return ""
         }
-        
+
         lastDotIndex = filePath.lastIndexOf(".")
         if (lastDotIndex == -1) {
             return ""
         }
-        
+
         return filePath.substring(lastDotIndex + 1).toLowerCase()
     }
-    
+
     // Get MIME type for file extension
     soul getMimeType(extension) {
         if (this.mimeTypes[extension]) {
@@ -171,11 +168,11 @@ sanctuary StaticFileHandler {
         }
         return this.mimeTypes["default"]
     }
-    
+
     // Determine if file should be cached
     soul shouldCache(extension) {
         cacheableExtensions = ["css", "js", "png", "jpg", "jpeg", "gif", "svg", "ico", "webp", "woff", "woff2", "ttf", "otf"]
-        
+
         for (i = 0; i < cacheableExtensions.length(); i = i + 1) {
             if (extension == cacheableExtensions[i]) {
                 return true
@@ -183,65 +180,65 @@ sanctuary StaticFileHandler {
         }
         return false
     }
-    
+
     // Check if we're in development mode (no cache for dev)
     soul isDevelopment() {
         // Simple check - you can make this more sophisticated
         return true // For now, always treat as development
     }
-    
+
     // Get expiration date for cache headers
     soul getExpirationDate() {
         // Return a date 1 year from now
         // This is a simplified implementation
         return "Thu, 31 Dec 2025 23:59:59 GMT"
     }
-    
+
     // List all registered static routes (for debugging)
     soul listStaticRoutes() {
-        console.log("📋 Registered static routes:")
+        Console.log("📋 Registered static routes:")
         for (i = 0; i < this.staticRoutes.length(); i = i + 1) {
             route = this.staticRoutes[i]
-            console.log("  " + route.urlPrefix + " -> " + route.localPath)
+            Console.log("  " + route.urlPrefix + " -> " + route.localPath)
         }
     }
-    
+
     // Add custom MIME type
     soul addMimeType(extension, mimeType) {
         this.mimeTypes[extension] = mimeType
-        console.log("✅ Added MIME type: " + extension + " -> " + mimeType)
+        Console.log("✅ Added MIME type: " + extension + " -> " + mimeType)
     }
-    
+
     // Generate cache-busting URL
     soul getCacheBustingUrl(baseUrl) {
-        timestamp = time.now()
+        timestamp = now()
         separator = "?"
-        if (baseUrl.includes("?")) {
+        if (baseURL.includes("?")) {
             separator = "&"
         }
         return baseUrl + separator + "v=" + timestamp
     }
-    
+
     // Serve a single file at a specific route
     soul serveFile(app, route, filePath) {
-        
+
         app.get(route, soul(req, res) {
             try {
                 content = io.read(filePath)
                 extension = this.getFileExtension(filePath)
                 mimeType = this.getMimeType(extension)
-                
+
                 res.header("Content-Type", mimeType)
-                
+
                 // Force no cache for single file serves (usually for development)
                 res.header("Cache-Control", "no-cache, no-store, must-revalidate")
                 res.header("Pragma", "no-cache")
                 res.header("Expires", "0")
                 res.header("Last-Modified", "Thu, 01 Jan 1970 00:00:00 GMT")
                 res.header("X-Content-Type-Options", "nosniff")
-                
+
                 res.send(content)
-                
+
             } catch (error) {
                 res.status(404).send("File not found")
             }

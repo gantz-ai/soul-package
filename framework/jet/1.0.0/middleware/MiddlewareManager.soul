@@ -56,7 +56,7 @@ sanctuary MiddlewareManager {
 
     // Middleware system
     soul use(middleware, unused, app) {
-        console.log("🔍 [MIDDLEWARE MANAGER] Registering middleware: " + middleware)
+        Console.log("🔍 [MIDDLEWARE MANAGER] Registering middleware: " + middleware)
 
         // Add middleware directly (debug logging removed for performance)
         wrappedMiddleware = middleware
@@ -64,10 +64,10 @@ sanctuary MiddlewareManager {
         // Add middleware to apply to all paths
         this.middlewares.push({
             path: "*", 
-            handler: wrappedMiddleware, 
-            type: "middleware"
+                handler: wrappedMiddleware, 
+                type: "middleware"
         })
-        console.log("🔍 [MIDDLEWARE MANAGER] Middleware registered. Total count: " + this.middlewares.length())
+        Console.log("🔍 [MIDDLEWARE MANAGER] Middleware registered. Total count: " + this.middlewares.length())
         return app
     }
 
@@ -125,7 +125,7 @@ sanctuary MiddlewareManager {
         corsConfig = this.mergeWithDefaults("cors", options)
 
         corsMiddleware = soul(req, res, next) {
-            console.log("🔍 [CORS] Middleware entry")
+            Console.log("🔍 [CORS] Middleware entry")
 
             // Set CORS headers
             res.header("Access-Control-Allow-Origin", corsConfig.origin)
@@ -140,24 +140,24 @@ sanctuary MiddlewareManager {
                 res.header("Access-Control-Max-Age", corsConfig.maxAge.toString())
             }
 
-            console.log("🔍 [CORS] Checking request method...")
+            Console.log("🔍 [CORS] Checking request method...")
             if (req && req.method == "OPTIONS") {
-                console.log("🔍 [CORS] OPTIONS request detected")
+                Console.log("🔍 [CORS] OPTIONS request detected")
                 if (corsConfig.preflightContinue) {
                     next()
                 } else {
                     res.status(204).end()
                 }
             } else {
-                console.log("🔍 [CORS] Non-OPTIONS request, calling next()")
+                Console.log("🔍 [CORS] Non-OPTIONS request, calling next()")
                 next()
             }
-            console.log("🔍 [CORS] Middleware completed")
+            Console.log("🔍 [CORS] Middleware completed")
         }
         this.middlewares.push({
             path: "*", 
-            handler: corsMiddleware, 
-            type: "middleware"
+                handler: corsMiddleware, 
+                type: "middleware"
         })
         return app
     }
@@ -190,8 +190,8 @@ sanctuary MiddlewareManager {
         }
         this.middlewares.push({
             path: "*", 
-            handler: helmetMiddleware, 
-            type: "middleware"
+                handler: helmetMiddleware, 
+                type: "middleware"
         })
         return app
     }
@@ -212,8 +212,8 @@ sanctuary MiddlewareManager {
         }
         this.middlewares.push({
             path: "*", 
-            handler: compressionMiddleware, 
-            type: "middleware"
+                handler: compressionMiddleware, 
+                type: "middleware"
         })
         return app
     }
@@ -224,26 +224,26 @@ sanctuary MiddlewareManager {
         requests = {}
 
         rateLimitMiddleware = soul(req, res, next) {
-            console.log("🔍 [RATE LIMIT] Middleware entry")
+            Console.log("🔍 [RATE LIMIT] Middleware entry")
 
             // Safe key extraction with multiple fallbacks
             key = "unknown"
-            console.log("🔍 [RATE LIMIT] Initial key set to: " + key)
+            Console.log("🔍 [RATE LIMIT] Initial key set to: " + key)
 
-            console.log("🔍 [RATE LIMIT] Checking req object...")
+            Console.log("🔍 [RATE LIMIT] Checking req object...")
             if (req) {
-                console.log("🔍 [RATE LIMIT] req exists, checking req.ip...")
+                Console.log("🔍 [RATE LIMIT] req exists, checking req.ip...")
                 if (req.ip) {
                     key = req.ip
-                    console.log("🔍 [RATE LIMIT] key set to req.ip: " + key)
+                    Console.log("🔍 [RATE LIMIT] key set to req.ip: " + key)
                 } else {
-                    console.log("🔍 [RATE LIMIT] req.ip is null/undefined")
+                    Console.log("🔍 [RATE LIMIT] req.ip is null/undefined")
                 }
             } else {
-                console.log("❌ [RATE LIMIT] req is null!")
+                Console.log("❌ [RATE LIMIT] req is null!")
             }
 
-            now = time.now()
+            now = now()
 
             // Ensure requests object exists
             if (!requests) {
@@ -278,14 +278,14 @@ sanctuary MiddlewareManager {
                 }
             }
 
-            console.log("🔍 [RATE LIMIT] Calling next()...")
+            Console.log("🔍 [RATE LIMIT] Calling next()...")
             next()
-            console.log("🔍 [RATE LIMIT] next() completed")
+            Console.log("🔍 [RATE LIMIT] next() completed")
         }
         this.middlewares.push({
             path: "*", 
-            handler: rateLimitMiddleware, 
-            type: "middleware"
+                handler: rateLimitMiddleware, 
+                type: "middleware"
         })
         return app
     }
@@ -322,8 +322,8 @@ sanctuary MiddlewareManager {
             }
             this.middlewares.push({
                 path: "*", 
-                handler: jwtMiddleware, 
-                type: "middleware"
+                    handler: jwtMiddleware, 
+                    type: "middleware"
             })
             return app
         } else if (strategy == "basic") {
@@ -346,8 +346,8 @@ sanctuary MiddlewareManager {
             }
             this.middlewares.push({
                 path: "*", 
-                handler: basicMiddleware, 
-                type: "middleware"
+                    handler: basicMiddleware, 
+                    type: "middleware"
             })
             return app
         } else if (strategy == "session") {
@@ -370,8 +370,8 @@ sanctuary MiddlewareManager {
             }
             this.middlewares.push({
                 path: "*", 
-                handler: sessionMiddleware, 
-                type: "middleware"
+                    handler: sessionMiddleware, 
+                    type: "middleware"
             })
             return app
         }
@@ -439,7 +439,7 @@ sanctuary MiddlewareManager {
             if (fieldSchema.required && (value == null || value == null)) {
                 errors.push({
                     field: path + "." + field, 
-                    message: "Field is required"
+                        message: "Field is required"
                 })
                 // Skip to next field
             }
@@ -451,14 +451,14 @@ sanctuary MiddlewareManager {
                     validType = false
                     errors.push({
                         field: path + "." + field, 
-                        message: "Must be a string"
+                            message: "Must be a string"
                     })
                 }
                 if (fieldSchema.type == "number" && value.constructor.name != "Number") {
                     validType = false
                     errors.push({
                         field: path + "." + field, 
-                        message: "Must be a number"
+                            message: "Must be a number"
                     })
                 }
             }
@@ -466,21 +466,21 @@ sanctuary MiddlewareManager {
             if (value != null && fieldSchema.min != null && value < fieldSchema.min) {
                 errors.push({
                     field: path + "." + field, 
-                    message: "Must be at least " + fieldSchema.min
+                        message: "Must be at least " + fieldSchema.min
                 })
             }
 
             if (value != null && fieldSchema.max != null && value > fieldSchema.max) {
                 errors.push({
                     field: path + "." + field, 
-                    message: "Must be at most " + fieldSchema.max
+                        message: "Must be at most " + fieldSchema.max
                 })
             }
 
             if (value != null && fieldSchema.pattern && !fieldSchema.pattern.test(value)) {
                 errors.push({
                     field: path + "." + field, 
-                    message: "Invalid format"
+                        message: "Invalid format"
                 })
             }
         }
@@ -510,8 +510,8 @@ sanctuary MiddlewareManager {
         }
         this.middlewares.push({
             path: "*", 
-            handler: staticMiddleware, 
-            type: "middleware"
+                handler: staticMiddleware, 
+                type: "middleware"
         })
         return app
     }
@@ -525,11 +525,11 @@ sanctuary MiddlewareManager {
         }
 
         jsonMiddleware = soul(req, res, next) {
-            console.log("🔍 [JSON MIDDLEWARE] Processing request: " + req.method + " " + req.path)
+            Console.log("🔍 [JSON MIDDLEWARE] Processing request: " + req.method + " " + req.path)
 
             // Only parse JSON for POST, PUT, PATCH requests
             if (req.method == "POST" || req.method == "PUT" || req.method == "PATCH") {
-                console.log("🔍 [JSON MIDDLEWARE] Request method requires body parsing")
+                Console.log("🔍 [JSON MIDDLEWARE] Request method requires body parsing")
 
                 // Check content type with multiple header name variations
                 contentType = ""
@@ -543,8 +543,8 @@ sanctuary MiddlewareManager {
                         contentType = req.headers["CONTENT-TYPE"]
                     }
                 }
-                console.log("🔍 [JSON MIDDLEWARE] Content-Type: '" + contentType + "'")
-                console.log("🔍 [JSON MIDDLEWARE] All headers: " + req.headers)
+                Console.log("🔍 [JSON MIDDLEWARE] Content-Type: '" + contentType + "'")
+                Console.log("🔍 [JSON MIDDLEWARE] All headers: " + req.headers)
 
                 // More flexible content type checking
                 isJsonContent = false
@@ -554,35 +554,35 @@ sanctuary MiddlewareManager {
                     lowerContentType.includes("json") || 
                     lowerContentType == "application/json"
                 }
-                console.log("🔍 [JSON MIDDLEWARE] Is JSON content: " + isJsonContent)
+                Console.log("🔍 [JSON MIDDLEWARE] Is JSON content: " + isJsonContent)
 
                 if (isJsonContent) {
-                    console.log("🔍 [JSON MIDDLEWARE] JSON content type detected, parsing body...")
+                    Console.log("🔍 [JSON MIDDLEWARE] JSON content type detected, parsing body...")
 
                     // Read raw body and parse as JSON
                     if (req.body) {
-                        console.log("🔍 [JSON MIDDLEWARE] Raw body: " + req.body)
+                        Console.log("🔍 [JSON MIDDLEWARE] Raw body: " + req.body)
                         try {
-                            req.json = json.parse(req.body)
-                            console.log("🔍 [JSON MIDDLEWARE] Successfully parsed JSON")
-                            // console.log("🔍 [JSON MIDDLEWARE] Parsed data keys: " + Object.keys(req.json).join(", "))
+                            req.json = JSON.parse(req.body)
+                            Console.log("🔍 [JSON MIDDLEWARE] Successfully parsed JSON")
+                            // Console.log("🔍 [JSON MIDDLEWARE] Parsed data keys: " + Object.keys(req.json).join(", "))
                         } catch (parseError) {
-                            console.log("❌ [JSON MIDDLEWARE] JSON parse error: " + parseError)
+                            Console.log("❌ [JSON MIDDLEWARE] JSON parse error: " + parseError)
                             return res.status(400).json({
                                 error: "Bad Request", 
                                 message: "Invalid JSON in request body"
                             })
                         }
                     } else {
-                        console.log("❌ [JSON MIDDLEWARE] No body found in request")
+                        Console.log("❌ [JSON MIDDLEWARE] No body found in request")
                         req.json = {}
                     }
                 } else {
-                    console.log("🔍 [JSON MIDDLEWARE] Non-JSON content type, skipping parsing")
+                    Console.log("🔍 [JSON MIDDLEWARE] Non-JSON content type, skipping parsing")
                     req.json = null
                 }
             } else {
-                console.log("🔍 [JSON MIDDLEWARE] GET/HEAD/OPTIONS request, no body parsing needed")
+                Console.log("🔍 [JSON MIDDLEWARE] GET/HEAD/OPTIONS request, no body parsing needed")
                 req.json = null
             }
 
@@ -591,8 +591,8 @@ sanctuary MiddlewareManager {
 
         this.middlewares.push({
             path: "*", 
-            handler: jsonMiddleware, 
-            type: "middleware"
+                handler: jsonMiddleware, 
+                type: "middleware"
         })
         return app
     }
@@ -614,15 +614,15 @@ sanctuary MiddlewareManager {
                 }
 
                 if (contentType.includes("application/x-www-form-urlencoded")) {
-                    console.log("🔍 [URLENCODED MIDDLEWARE] URL-encoded content type detected")
+                    Console.log("🔍 [URLENCODED MIDDLEWARE] URL-encoded content type detected")
 
                     // Parse URL-encoded body
                     if (req.body) {
                         try {
                             req.form = this.parseUrlEncoded(req.body)
-                            console.log("🔍 [URLENCODED MIDDLEWARE] Successfully parsed form data")
+                            Console.log("🔍 [URLENCODED MIDDLEWARE] Successfully parsed form data")
                         } catch (parseError) {
-                            console.log("❌ [URLENCODED MIDDLEWARE] Parse error: " + parseError)
+                            Console.log("❌ [URLENCODED MIDDLEWARE] Parse error: " + parseError)
                             return res.status(400).json({
                                 error: "Bad Request", 
                                 message: "Invalid form data"
@@ -643,8 +643,8 @@ sanctuary MiddlewareManager {
 
         this.middlewares.push({
             path: "*", 
-            handler: urlencodedMiddleware, 
-            type: "middleware"
+                handler: urlencodedMiddleware, 
+                type: "middleware"
         })
         return app
     }

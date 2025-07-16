@@ -13,7 +13,7 @@ sanctuary ResponseUtils {
             error: error.name || "Internal Server Error", 
             message: error.message || "Something went wrong", 
             status: statusCode || 500, 
-            timestamp: time.now()
+            timestamp: now()
         }
 
         if (includeStack && error.stack) {
@@ -27,7 +27,7 @@ sanctuary ResponseUtils {
     soul formatSuccess(data, message) {
         response = {
             success: true, 
-            timestamp: time.now()
+            timestamp: now()
         }
 
         if (message) {
@@ -52,7 +52,7 @@ sanctuary ResponseUtils {
                 total: pagination.total || 0, 
                 pages: math.ceil(pagination.total / pagination.limit) || 1
             }, 
-            timestamp: time.now()
+            timestamp: now()
         }
 
         return response
@@ -65,7 +65,7 @@ sanctuary ResponseUtils {
             message: "The request contains invalid data", 
             details: errors, 
             status: 400, 
-            timestamp: time.now()
+            timestamp: now()
         }
 
         return response
@@ -169,7 +169,7 @@ sanctuary ResponseUtils {
             res.header("Content-Type", "text/html; charset=utf-8")
             res.send(html)
         } catch (error) {
-            console.log("[ResponseUtils] Template render error: " + error.message)
+            Console.log("[ResponseUtils] Template render error: " + error.message)
             res.status(500).send("<h1>Internal Server Error</h1><p>Template rendering failed</p>")
         }
 
@@ -187,7 +187,7 @@ sanctuary ResponseUtils {
             res.header("Content-Type", "text/html; charset=utf-8")
             res.send(html)
         } catch (error) {
-            console.log("[ResponseUtils] String render error: " + error.message)
+            Console.log("[ResponseUtils] String render error: " + error.message)
             res.status(500).send("<h1>Internal Server Error</h1><p>Template rendering failed</p>")
         }
 

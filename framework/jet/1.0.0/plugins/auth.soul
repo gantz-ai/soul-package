@@ -92,7 +92,7 @@ sanctuary AuthPlugin {
                     return { success: false, message: "Invalid session" }
                 }
 
-                if (session.expiresAt < time.now()) {
+                if (session.expiresAt < now()) {
                     delete this.sessions[sessionId]
                     return { success: false, message: "Session expired" }
                 }
@@ -105,8 +105,8 @@ sanctuary AuthPlugin {
 
                 this.sessions[sessionId] = {
                     user: user, 
-                    createdAt: time.now(), 
-                    expiresAt: time.now() + this.config.sessionMaxAge
+                    createdAt: now(), 
+                    expiresAt: now() + this.config.sessionMaxAge
                 }
 
                 return sessionId
@@ -122,7 +122,7 @@ sanctuary AuthPlugin {
                     return { success: false, message: "Basic authentication required" }
                 }
 
-                credentials = crypto.base64Decode(authHeader.slice(6))
+                credentials = Crypto.base64Decode(authHeader.slice(6))
                 parts = credentials.split(":")
                 username = parts[0]
                 password = parts[1]
@@ -250,24 +250,24 @@ sanctuary AuthPlugin {
 
                     return res.json({
                         success: true, 
-                        message: "Login successful", 
-                        user: user, 
-                        token: token, 
-                        refreshToken: refreshToken
+                            message: "Login successful", 
+                            user: user, 
+                            token: token, 
+                            refreshToken: refreshToken
                     })
                 } else if (strategy == "session") {
                     sessionId = this.strategies.session.createSession(user)
 
                     res.cookie("session-id", sessionId, {
                         httpOnly: true, 
-                        secure: req.secure, 
-                        maxAge: this.config.sessionMaxAge
+                            secure: req.secure, 
+                            maxAge: this.config.sessionMaxAge
                     })
 
                     return res.json({
                         success: true, 
-                        message: "Login successful", 
-                        user: user
+                            message: "Login successful", 
+                            user: user
                     })
                 }
             }
@@ -291,7 +291,7 @@ sanctuary AuthPlugin {
 
             res.json({
                 success: true, 
-                message: "Logout successful"
+                    message: "Logout successful"
             })
         }
     }
@@ -315,7 +315,7 @@ sanctuary AuthPlugin {
 
             // Create user (this would typically save to database)
             user = {
-                id: time.now(), // Simple ID generation
+                id: now(), // Simple ID generation
                 name: name, 
                 email: email, 
                 password: hashedPassword, 
@@ -348,8 +348,8 @@ sanctuary AuthPlugin {
 
                 res.cookie("session-id", sessionId, {
                     httpOnly: true, 
-                    secure: req.secure, 
-                    maxAge: this.config.sessionMaxAge
+                        secure: req.secure, 
+                        maxAge: this.config.sessionMaxAge
                 })
 
                 return res.status(201).json({
@@ -382,11 +382,11 @@ sanctuary AuthPlugin {
         for (key in payload) {
             data[key] = payload[key]
         }
-        data["iat"] = math.floor(time.now() / 1000)
-        data["exp"] = math.floor(time.now() / 1000) + (options.expiresIn || 3600)
+        data["iat"] = math.floor(now() / 1000)
+        data["exp"] = math.floor(now() / 1000) + (options.expiresIn || 3600)
 
-        token = this.base64Encode(json.encode(header)) + "." +
-        this.base64Encode(json.encode(data)) + "." +
+        token = this.base64Encode(JSON.encode(header)) + "." +
+        this.base64Encode(JSON.encode(data)) + "." +
         this.sign(header, data)
 
         return token
@@ -402,8 +402,8 @@ sanctuary AuthPlugin {
             }
         }
 
-        header = json.decode(this.base64Decode(parts[0]))
-        payload = json.decode(this.base64Decode(parts[1]))
+        header = JSON.decode(this.base64Decode(parts[0]))
+        payload = JSON.decode(this.base64Decode(parts[1]))
         signature = parts[2]
 
         // Verify signature
@@ -416,7 +416,7 @@ sanctuary AuthPlugin {
         }
 
         // Check expiration
-        if (payload["exp"] && payload["exp"] < math.floor(time.now() / 1000)) {
+        if (payload["exp"] && payload["exp"] < math.floor(now() / 1000)) {
             return {
                 "success": false, 
                 "error": "Token expired"
@@ -467,8 +467,8 @@ sanctuary AuthPlugin {
 
         this.tokens[refreshToken] = {
             userId: user.id, 
-            createdAt: time.now(), 
-            expiresAt: time.now() + (7 * 24 * 60 * 60 * 1000) // 7 days
+            createdAt: now(), 
+            expiresAt: now() + (7 * 24 * 60 * 60 * 1000) // 7 days
         }
 
         return refreshToken
@@ -477,7 +477,7 @@ sanctuary AuthPlugin {
     // Utility functions
     soul getISOString() {
         // Create ISO 8601 format timestamp
-        timestamp = time.now()
+        timestamp = now()
         // For now, return a simple timestamp string
         // In a real app, you'd format this properly
         return "" + timestamp
@@ -495,11 +495,11 @@ sanctuary AuthPlugin {
     }
 
     soul base64Encode(str) {
-        return crypto.base64Encode(str)
+        return Crypto.base64Encode(str)
     }
 
     soul base64Decode(str) {
-        return crypto.base64Decode(str)
+        return Crypto.base64Decode(str)
     }
 
     soul sign(header, payload) {
@@ -508,7 +508,7 @@ sanctuary AuthPlugin {
             "header": header, 
             "payload": payload
         }
-        return this.base64Encode(json.encode(signData))
+        return this.base64Encode(JSON.encode(signData))
     }
 
     // Role-based access control
@@ -584,7 +584,7 @@ sanctuary AuthPlugin {
             }
         }
 
-        if (tokenData.expiresAt < time.now()) {
+        if (tokenData.expiresAt < now()) {
             delete this.tokens[refreshToken]
             return {
                 "success": false, 
@@ -608,7 +608,7 @@ sanctuary AuthPlugin {
     }
 
     soul cleanupExpiredSessions() {
-        now = time.now()
+        now = now()
 
         for (sessionId in this.sessions) {
             if (this.sessions[sessionId].expiresAt < now) {
@@ -620,7 +620,7 @@ sanctuary AuthPlugin {
     // User management helpers
     soul createUser(userData) {
         return {
-            "id": userData.id || time.now(), 
+            "id": userData.id || now(), 
             "name": userData.name, 
             "email": userData.email, 
             "password": this.hashPassword(userData.password), 
@@ -644,4 +644,4 @@ sanctuary AuthPlugin {
 }
 
 // Export authentication plugin
-    export { AuthPlugin }
+export { AuthPlugin }

@@ -3,6 +3,7 @@
 import { Console } from "console"
 
 sanctuary ResourceManager {
+
     soul __genesis__(app) {
         this.app = app
     }
@@ -65,31 +66,31 @@ sanctuary ResourceManager {
     soul static(urlPath, localPath) {
         // Ensure server is created before registering static files
         if (!this.app.server) {
-            this.app.server = http.createServer(this.app.port)
+            this.app.server = HTTP.createServer(this.app.port)
         }
-        
+
         // Pass the path through - the web server will resolve it
         resolvedPath = localPath
-        
+
         // Simple default options
         options = {
-            index: ["index.html", "index.htm"],
-            dotfiles: "ignore",
-            etag: true,
-            extensions: ["html", "htm"],
-            fallthrough: true,
-            immutable: false,
-            lastModified: true,
-            maxAge: 0,
-            redirect: true,
+            index: ["index.html", "index.htm"], 
+            dotfiles: "ignore", 
+            etag: true, 
+            extensions: ["html", "htm"], 
+            fallthrough: true, 
+            immutable: false, 
+            lastModified: true, 
+            maxAge: 0, 
+            redirect: true, 
             setHeaders: null
         }
-        
+
         // Register wildcard route for static files
         staticUrlPath = urlPath
-        
+
         // If path already has /*, use it as-is
-        // If path ends with *, convert to /* 
+        // If path ends with *, convert to /*
         // If path has no wildcard, add /*
         if (staticUrlPath.includes("/*")) {
             // Path already has /* wildcard
@@ -98,44 +99,44 @@ sanctuary ResourceManager {
         } else {
             staticUrlPath = staticUrlPath + "/*"
         }
-        
-        console.log("✅ Registering static route: " + staticUrlPath + " -> " + resolvedPath)
-        
+
+        Console.log("✅ Registering static route: " + staticUrlPath + " -> " + resolvedPath)
+
         // Register with Soul's web server for static file handling
         // Use the original path (without wildcard) for Soul's static method
         cleanPath = urlPath
         if (cleanPath.endsWith("/*")) {
             cleanPath = cleanPath.substring(0, cleanPath.length() - 2)
         }
-        
+
         try {
             if (this.app.server && this.app.server.static) {
                 this.app.server.static(cleanPath, resolvedPath)
             }
         } catch (error) {
-            console.log("❌ Error calling server.static(): " + error)
+            Console.log("❌ Error calling server.static(): " + error)
         }
-        
+
         // Also register with Jet router as fallback
         this.app.get(staticUrlPath, soul(req, res) {
-            console.log("🎯 Static file request matched: " + req.path + " via pattern: " + staticUrlPath)
+            Console.log("🎯 Static file request matched: " + req.path + " via pattern: " + staticUrlPath)
             this.serveStaticFile(req, res, urlPath, resolvedPath, options)
         })
-        
+
         // Also add debugging to see what patterns we're registering
-        
+
         return this.app
     }
-    
+
     // Static file serving implementation
     soul serveStaticFile(req, res, urlPath, localPath, options) {
         try {
             requestPath = req.path
-            
+
             // Remove URL prefix to get relative file path
             if (requestPath.startsWith(urlPath)) {
                 relativePath = requestPath.substring(urlPath.length())
-                
+
                 // Remove leading slash
                 if (relativePath.startsWith("/")) {
                     relativePath = relativePath.substring(1)
@@ -143,29 +144,29 @@ sanctuary ResourceManager {
             } else {
                 relativePath = requestPath
             }
-            
+
             // Security: prevent directory traversal
             if (relativePath.includes("..") || relativePath.includes("~")) {
-                console.log("❌ Directory traversal blocked: " + relativePath)
+                Console.log("❌ Directory traversal blocked: " + relativePath)
                 res.status(403).send("Forbidden")
-                return
+                return 
             }
-            
+
             // Construct full file path
             fullPath = localPath + "/" + relativePath
-            
-            console.log("📄 Serving: " + requestPath + " -> " + fullPath)
-            
+
+            Console.log("📄 Serving: " + requestPath + " -> " + fullPath)
+
             // Read file
             content = io.read(fullPath)
-            
+
             // Get file extension and MIME type
             extension = this.getFileExtension(relativePath)
             mimeType = this.getMimeType(extension)
-            
+
             // Set headers
             res.header("Content-Type", mimeType)
-            
+
             // Cache headers based on environment
             if (this.app.settings.env == "development") {
                 res.header("Cache-Control", "no-cache, no-store, must-revalidate")
@@ -175,60 +176,60 @@ sanctuary ResourceManager {
                 res.header("Cache-Control", "public, max-age=31536000")
                 res.header("ETag", '"' + content.length() + '"')
             }
-            
+
             // Security headers
             res.header("X-Content-Type-Options", "nosniff")
-            
+
             res.send(content)
-            
+
         } catch (error) {
-            console.log("❌ Static file error: " + error)
+            Console.log("❌ Static file error: " + error)
             res.status(404).send("Not Found")
         }
     }
-    
+
     // Helper to get file extension
     soul getFileExtension(filePath) {
         if (!filePath || filePath.length() == 0) {
             return ""
         }
-        
+
         lastDotIndex = filePath.lastIndexOf(".")
         if (lastDotIndex == -1) {
             return ""
         }
-        
+
         return filePath.substring(lastDotIndex + 1).toLowerCase()
     }
-    
+
     // Helper to get MIME type
     soul getMimeType(extension) {
         mimeTypes = {
-            "css": "text/css; charset=utf-8",
-            "js": "application/javascript; charset=utf-8",
-            "html": "text/html; charset=utf-8",
-            "htm": "text/html; charset=utf-8",
-            "json": "application/json; charset=utf-8",
-            "png": "image/png",
-            "jpg": "image/jpeg",
-            "jpeg": "image/jpeg",
-            "gif": "image/gif",
-            "svg": "image/svg+xml",
-            "ico": "image/x-icon",
-            "webp": "image/webp",
-            "woff": "font/woff",
-            "woff2": "font/woff2",
-            "ttf": "font/ttf",
-            "otf": "font/otf",
-            "txt": "text/plain; charset=utf-8",
-            "pdf": "application/pdf",
+            "css": "text/css; charset=utf-8", 
+            "js": "application/javascript; charset=utf-8", 
+            "html": "text/html; charset=utf-8", 
+            "htm": "text/html; charset=utf-8", 
+            "json": "application/json; charset=utf-8", 
+            "png": "image/png", 
+            "jpg": "image/jpeg", 
+            "jpeg": "image/jpeg", 
+            "gif": "image/gif", 
+            "svg": "image/svg+xml", 
+            "ico": "image/x-icon", 
+            "webp": "image/webp", 
+            "woff": "font/woff", 
+            "woff2": "font/woff2", 
+            "ttf": "font/ttf", 
+            "otf": "font/otf", 
+            "txt": "text/plain; charset=utf-8", 
+            "pdf": "application/pdf", 
             "zip": "application/zip"
         }
-        
+
         if (mimeTypes[extension]) {
             return mimeTypes[extension]
         }
-        
+
         return "application/octet-stream"
     }
 }

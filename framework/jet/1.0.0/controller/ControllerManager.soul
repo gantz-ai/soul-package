@@ -1,9 +1,9 @@
-
 // Controller Manager - Handles controller registration and execution
 
 import { Console } from "console"
 
 sanctuary ControllerManager {
+
     soul __genesis__(app) {
         this.app = app
         this.controllers = {}
@@ -29,18 +29,18 @@ sanctuary ControllerManager {
     // Create a route handler from a controller method
     soul createHandler(controllerName, methodName) {
         app = this.app
-        
+
         return soul(req, res, next) {
             try {
                 controller = app.getController(controllerName)
-                
+
                 if (!controller) {
                     return res.status(500).json({
-                        error: "Internal Server Error",
+                        error: "Internal Server Error", 
                         message: "Controller '" + controllerName + "' not found"
                     })
                 }
-                
+
                 // This is a simplified way to call methods.
                 // A more robust implementation would use reflection or a dispatch table.
                 if (methodName == "login") {
@@ -51,15 +51,15 @@ sanctuary ControllerManager {
                     controller.verify(req, res)
                 } else {
                     return res.status(500).json({
-                        error: "Internal Server Error",
+                        error: "Internal Server Error", 
                         message: "Method '" + methodName + "' not supported"
                     })
                 }
-                
+
             } catch (error) {
-                console.log("❌ Controller error: " + error)
+                Console.log("❌ Controller error: " + error)
                 return res.status(500).json({
-                    error: "Internal Server Error",
+                    error: "Internal Server Error", 
                     message: "Error executing controller method"
                 })
             }

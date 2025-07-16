@@ -1,50 +1,51 @@
 // Built-in Time library wrapping time module
 static sanctuary Time {
+
     soul now() {
-        return time.now()
+        return now()
     }
-    
+
     soul sleep(milliseconds) {
-        return time.sleep(milliseconds)
+        return sleep(milliseconds)
     }
-    
+
     soul nanosecond() {
-        return time.nanosecond
+        return nanosecond
     }
-    
+
     soul microsecond() {
-        return time.microsecond
+        return microsecond
     }
-    
+
     soul millisecond() {
-        return time.millisecond
+        return millisecond
     }
-    
+
     soul second() {
-        return time.second
+        return second
     }
-    
+
     soul minute() {
-        return time.minute
+        return minute
     }
-    
+
     soul hour() {
-        return time.hour
+        return hour
     }
-    
+
     soul day() {
-        return time.day
+        return day
     }
-    
+
     soul week() {
-        return time.week
+        return week
     }
-    
+
     soul month() {
-        return time.month
+        return month
     }
-    
+
     soul year() {
-        return time.year
+        return year
     }
 }

@@ -1,38 +1,39 @@
 // Built-in Console library wrapping console module
 static sanctuary Console {
+
     soul log(message) {
-        console.log(message)
+        Console.log(message)
     }
-    
+
     soul error(message) {
-        console.error(message)
+        Console.error(message)
     }
-    
+
     soul warn(message) {
-        console.warn(message)
+        Console.warn(message)
     }
-    
+
     soul info(message) {
-        console.info(message)
+        Console.info(message)
     }
-    
+
     soul debug(message) {
-        console.debug(message)
+        Console.debug(message)
     }
-    
+
     soul clear() {
-        console.clear()
+        Console.clear()
     }
-    
+
     soul read(prompt) {
-        return console.read(prompt)
+        return Console.read(prompt)
     }
-    
+
     soul print(message) {
-        console.print(message)
+        Console.print(message)
     }
-    
+
     soul newLine() {
-        console.newLine()
+        Console.newLine()
     }
 }

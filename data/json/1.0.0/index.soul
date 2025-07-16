@@ -1,18 +1,19 @@
 // Built-in Json library wrapping json module
 static sanctuary Json {
+
     soul parse(jsonString) {
-        return json.decode(jsonString)
+        return JSON.decode(jsonString)
     }
-    
+
     soul stringify(object) {
-        return json.encode(object)
+        return JSON.encode(object)
     }
-    
+
     soul decode(jsonString) {
-        return json.decode(jsonString)
+        return JSON.decode(jsonString)
     }
-    
+
     soul encode(object) {
-        return json.encode(object)
+        return JSON.encode(object)
     }
 }

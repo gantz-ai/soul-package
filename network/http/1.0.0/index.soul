@@ -1,10 +1,11 @@
 // Built-in Http library wrapping http module
 static sanctuary Http {
+
     soul handle(path, callback) {
-        return http.handle(path, callback)
+        return HTTP.handle(path, callback)
     }
-    
+
     soul listen(port, callback) {
-        return http.listen(port, callback)
+        return HTTP.listen(port, callback)
     }
 }

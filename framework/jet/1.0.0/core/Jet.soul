@@ -9,47 +9,48 @@ import { ResourceManager } from "../resources/ResourceManager.soul"
 import { HtmlRenderer } from "../utils/HtmlRenderer.soul"
 
 sanctuary Jet {
+
     soul __genesis__(port) {
         if (port) {
             this.port = port
         } else {
             this.port = 8888
         }
-        
+
         // Core properties
         this.server = null
         this.startTime = null
-        
+
         // Component managers
         this.router = Router.new()
         this.middlewareManager = MiddlewareManager.new()
         this.htmlRenderer = HtmlRenderer()
         this.controllerManager = ControllerManager.new(this)
         this.resourceManager = ResourceManager.new(this)
-        
+
         // Settings
         this.settings = {
-            env: "development",
-            trustProxy: false,
-            jsonLimit: "10mb",
+            env: "development", 
+            trustProxy: false, 
+            jsonLimit: "10mb", 
             urlEncoded: true
         }
-        
+
         // Enhanced architecture components
         this.controllers = {}
         this.services = {}
         this.repositories = {}
         this.models = {}
         this.config = {}
-        
+
         // Performance tracking
         this.performance = {
-            startTime: 0,
-            requests: 0,
-            errors: 0,
+            startTime: 0, 
+            requests: 0, 
+            errors: 0, 
             avgResponseTime: 0
         }
-        
+
         // Initialize logger
         this.initializeLogger()
     }
@@ -57,10 +58,10 @@ sanctuary Jet {
     // Initialize logger
     soul initializeLogger() {
         this.logger = {
-            info: soul(message) { Console.log("[INFO] " + message) },
-            warn: soul(message) { Console.log("[WARN] " + message) },
-            error: soul(message) { Console.log("[ERROR] " + message) },
-            debug: soul(message) { 
+            info: soul(message) { Console.log("[INFO] " + message) }, 
+            warn: soul(message) { Console.log("[WARN] " + message) }, 
+            error: soul(message) { Console.log("[ERROR] " + message) }, 
+            debug: soul(message) {
                 if (this.settings.env == "development") {
                     Console.log("[DEBUG] " + message)
                 }
@@ -77,7 +78,7 @@ sanctuary Jet {
     soul get(key) {
         return this.settings[key]
     }
-    
+
     // Method to set start time
     soul setStartTime(timestamp) {
         this.startTime = timestamp
@@ -93,42 +94,42 @@ sanctuary Jet {
         this.settings.trustProxy = proxy
         return this
     }
-    
+
     // View engine configuration
     soul setViewsPath(path) {
         // Always try to resolve to executable directory first
         execDir = os.executableDir()
         execRelativePath = os.joinPath(execDir, path)
-        
+
         resolvedPath = path
         if (os.exists(execRelativePath)) {
             resolvedPath = execRelativePath
         }
-        
+
         this.htmlRenderer.setViewsPath(resolvedPath)
         return this
     }
-    
+
     soul setDefaultLayout(layout) {
         this.htmlRenderer.setDefaultLayout(layout)
         return this
     }
-    
+
     soul enableViewCache(enable) {
         this.htmlRenderer.enableCache(enable)
         return this
     }
-    
+
     soul helper(name, helperFunction) {
         this.htmlRenderer.helper(name, helperFunction)
         return this
     }
-    
+
     // Enhanced architecture registration methods
     soul registerController(name, controller) {
         return this.controllerManager.register(name, controller)
     }
-    
+
     soul registerService(name, service) {
         this.services[name] = service
         if (service.setApp) {
@@ -136,7 +137,7 @@ sanctuary Jet {
         }
         return this
     }
-    
+
     soul registerRepository(name, repository) {
         this.repositories[name] = repository
         if (repository.setApp) {
@@ -144,27 +145,27 @@ sanctuary Jet {
         }
         return this
     }
-    
+
     soul registerModel(name, model) {
         this.models[name] = model
         return this
     }
-    
+
     soul getController(name) {
         return this.controllerManager.get(name)
     }
-    
+
     soul getService(name) {
         if (!this.services) {
             return null
         }
         return this.services[name]
     }
-    
+
     soul getRepository(name) {
         return this.repositories[name]
     }
-    
+
     soul getModel(name) {
         return this.models[name]
     }
@@ -257,16 +258,16 @@ sanctuary Jet {
         }
         return this
     }
-    
+
     // Template rendering helper
     soul render(templateName, data, options) {
         return this.htmlRenderer.render(templateName, data, options)
     }
-    
+
     soul renderString(template, data) {
         return this.htmlRenderer.renderString(template, data)
     }
-    
+
     // Enhanced routing with controller integration
     soul controller(controllerName, methodName) {
         return this.controllerManager.createHandler(controllerName, methodName)
@@ -276,31 +277,31 @@ sanctuary Jet {
     soul listen(callback) {
         // Use existing server if created, otherwise create new one
         if (!this.server) {
-            this.server = http.createServer(this.port)
+            this.server = HTTP.createServer(this.port)
         }
         app = this
-        
+
         // Register routes directly with the HTTP server
         this.router.registerRoutes(this.server)
-        
+
         if (callback) {
             callback()
         }
-        
+
         // Start server and keep it running (this blocks)
         this.server.listen()
-        
+
         return this
     }
 
     // Health check
     soul health() {
         return {
-            status: "healthy",
-            uptime: time.now() - this.startTime,
-            requests: this.performance.requests,
-            errors: this.performance.errors,
-            avgResponseTime: this.performance.avgResponseTime,
+            status: "healthy", 
+            uptime: now() - this.startTime, 
+            requests: this.performance.requests, 
+            errors: this.performance.errors, 
+            avgResponseTime: this.performance.avgResponseTime, 
             version: "1.0.0"
         }
     }

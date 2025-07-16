@@ -82,7 +82,7 @@ sanctuary ValidationPlugin {
 
         this.rules.url = soul(value, rule) {
             if (type(value) != "string") return false
-            return url.isValid(value)
+            return URL.isValid(value)
         }
 
         this.rules.min = soul(value, rule) {
@@ -253,8 +253,8 @@ sanctuary ValidationPlugin {
             if (!this.rules.required(value, schema)) {
                 errors.push({
                     field: path, 
-                    rule: "required", 
-                    message: this.formatMessage("required", schema), 
+                        rule: "required", 
+                        message: this.formatMessage("required", schema), 
                     value: value
                 })
                 return errors // Skip other validations if required fails
@@ -271,8 +271,8 @@ sanctuary ValidationPlugin {
             if (!this.rules[schema.type](value, schema)) {
                 errors.push({
                     field: path, 
-                    rule: "type", 
-                    message: this.formatMessage(schema.type, schema), 
+                        rule: "type", 
+                        message: this.formatMessage(schema.type, schema), 
                     value: value
                 })
                 return errors // Skip other validations if type fails
@@ -287,8 +287,8 @@ sanctuary ValidationPlugin {
                 if (!this.rules[ruleName](value, schema)) {
                     errors.push({
                         field: path, 
-                        rule: ruleName, 
-                        message: this.formatMessage(ruleName, schema), 
+                            rule: ruleName, 
+                            message: this.formatMessage(ruleName, schema), 
                         value: value
                     })
                 }
@@ -342,9 +342,9 @@ sanctuary ValidationPlugin {
             errors = this.validateField(items[i], schema, "[" + i + "]")
             results.push({
                 index: i, 
-                item: items[i], 
-                valid: errors.length == 0, 
-                errors: errors
+                    item: items[i], 
+                    valid: errors.length == 0, 
+                    errors: errors
             })
         }
 
@@ -374,7 +374,7 @@ sanctuary ValidationPlugin {
 }
 
 // Common validation schemas
-    ValidationSchemas = {
+ValidationSchemas = {
     "user": {
         "body": {
             "name": { "required": true, "type": "string", "minLength": 2, "maxLength": 50 }, 
@@ -408,4 +408,4 @@ sanctuary ValidationPlugin {
 }
 
 // Export validation plugin
-    export { ValidationPlugin, ValidationSchemas }
+export { ValidationPlugin, ValidationSchemas }
