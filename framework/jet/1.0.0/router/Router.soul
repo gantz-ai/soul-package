@@ -4,6 +4,7 @@
 import { Console } from "console"
 
 sanctuary Router {
+
     soul __genesis__() {
         this.routes = {}
         this.routeStack = []
@@ -17,34 +18,34 @@ sanctuary Router {
             path = "/"
         }
         parsedPath = this.parsePath(path)
-        
+
         // Handle single handler or array of handlers
         handlerArray = [handlers]
-        
+
         routeConfig = {
-            method: method.toUpperCase(),
-            path: parsedPath.path,
-            pattern: parsedPath.pattern,
-            params: parsedPath.params,
-            handlers: handlerArray,
-            middleware: [],
-            validation: null,
-            auth: null,
-            cache: null,
-            rateLimit: null,
-            description: null,
-            tags: [],
-            deprecated: false,
+            method: method.toUpperCase(), 
+            path: parsedPath.path, 
+            pattern: parsedPath.pattern, 
+            params: parsedPath.params, 
+            handlers: handlerArray, 
+            middleware: [], 
+            validation: null, 
+            auth: null, 
+            cache: null, 
+            rateLimit: null, 
+            description: null, 
+            tags: [], 
+            deprecated: false, 
             version: "1.0.0"
         }
-        
+
         if (!this.routes[method.toUpperCase()]) {
             this.routes[method.toUpperCase()] = []
         }
-        
+
         this.routes[method.toUpperCase()].push(routeConfig)
         this.routeStack.push(routeConfig)
-        
+
         return this.createRouteBuilder(routeConfig)
     }
 
@@ -52,16 +53,16 @@ sanctuary Router {
     soul group(prefix, callback) {
         oldPrefix = this.currentPrefix || ""
         this.currentPrefix = oldPrefix + prefix
-        
+
         groupConfig = {
-            prefix: prefix,
-            middleware: [],
+            prefix: prefix, 
+            middleware: [], 
             routes: []
         }
-        
+
         this.routeGroups[prefix] = groupConfig
         callback(this)
-        
+
         this.currentPrefix = oldPrefix
         return this
     }
@@ -70,7 +71,7 @@ sanctuary Router {
     soul createRouteBuilder(routeConfig) {
         return {
             middleware: soul(middlewares) {
-                if (Array.isArray(middlewares)) {
+                if (utils.isArray(middlewares)) {
                     for (i = 0; i < middlewares.length(); i = i + 1) {
                         routeConfig.middleware.push(middlewares[i])
                     }
@@ -78,29 +79,29 @@ sanctuary Router {
                     routeConfig.middleware.push(middlewares)
                 }
                 return this
-            },
+            }, 
             validate: soul(validator) {
                 routeConfig.validation = validator
                 return this
-            },
+            }, 
             auth: soul(authConfig) {
                 routeConfig.auth = authConfig
                 return this
-            },
+            }, 
             cache: soul(cacheConfig) {
                 routeConfig.cache = cacheConfig
                 return this
-            },
+            }, 
             rateLimit: soul(limitConfig) {
                 routeConfig.rateLimit = limitConfig
                 return this
-            },
+            }, 
             description: soul(desc) {
                 routeConfig.description = desc
                 return this
-            },
+            }, 
             tags: soul(tags) {
-                if (Array.isArray(tags)) {
+                if (utils.isArray(tags)) {
                     for (i = 0; i < tags.length(); i = i + 1) {
                         routeConfig.tags.push(tags[i])
                     }
@@ -108,11 +109,11 @@ sanctuary Router {
                     routeConfig.tags.push(tags)
                 }
                 return this
-            },
+            }, 
             deprecated: soul(isDeprecated) {
                 routeConfig.deprecated = isDeprecated || true
                 return this
-            },
+            }, 
             version: soul(version) {
                 routeConfig.version = version
                 return this
@@ -125,18 +126,18 @@ sanctuary Router {
         if (!path) {
             path = "/"
         }
-        
+
         // Convert to string to ensure we have a valid string
         pathStr = path.toString()
-        
+
         params = []
         regexPattern = pathStr
-        
+
         // Handle wildcards * -> (.*) BEFORE escaping
         if (regexPattern.includes("*")) {
             regexPattern = regexPattern.replace("*", "(.*)")
         }
-        
+
         // Handle parameter placeholders like :id (simplified)
         if (regexPattern.includes(":")) {
             // Simple replacement for common patterns
@@ -144,42 +145,41 @@ sanctuary Router {
             regexPattern = regexPattern.replace(":name", "([^/]+)")
             regexPattern = regexPattern.replace(":slug", "([^/]+)")
         }
-        
+
         // Escape dots for regex but NOT the ones in our patterns
         // Only escape literal dots, not the ones in (.*)
         regexPattern = regexPattern.replace(".", "\\.")
         // Fix over-escaping of our patterns
         regexPattern = regexPattern.replace("\\(\\.*\\)", "(.*)")
-        
+
         // Add anchors
         regexPattern = "^" + regexPattern + "$"
-        
+
         return {
-            path: pathStr,
-            pattern: regexPattern,
+            path: pathStr, 
+            pattern: regexPattern, 
             params: params
         }
     }
-    
 
     // Route matching - simplified with debugging
     soul matchRoute(method, path) {
         if (!this.routes[method]) {
             return null
         }
-        
+
         routes = this.routes[method]
-        
+
         for (i = 0; i < routes.length(); i = i + 1) {
             route = routes[i]
-            
+
             // Simple pattern matching without regex for now
             if (route.pattern.includes("(.*)")) {
                 // Wildcard pattern
                 prefix = route.pattern.replace("^", "").replace("(.*)$", "")
                 if (path.startsWith(prefix)) {
                     return {
-                        route: route,
+                        route: route, 
                         params: {}
                     }
                 }
@@ -188,7 +188,7 @@ sanctuary Router {
                 routePath = route.pattern.replace("^", "").replace("$", "")
                 if (path == routePath) {
                     return {
-                        route: route,
+                        route: route, 
                         params: {}
                     }
                 }
@@ -210,7 +210,7 @@ sanctuary Router {
                 }
             }
         }
-        
+
         if (this.routes["POST"]) {
             postRoutes = this.routes["POST"]
             for (i = 0; i < postRoutes.length(); i = i + 1) {
@@ -221,7 +221,7 @@ sanctuary Router {
                 }
             }
         }
-        
+
         if (this.routes["PUT"]) {
             putRoutes = this.routes["PUT"]
             for (i = 0; i < putRoutes.length(); i = i + 1) {
@@ -232,7 +232,7 @@ sanctuary Router {
                 }
             }
         }
-        
+
         if (this.routes["DELETE"]) {
             deleteRoutes = this.routes["DELETE"]
             for (i = 0; i < deleteRoutes.length(); i = i + 1) {
@@ -243,7 +243,7 @@ sanctuary Router {
                 }
             }
         }
-        
+
         if (this.routes["PATCH"]) {
             patchRoutes = this.routes["PATCH"]
             for (i = 0; i < patchRoutes.length(); i = i + 1) {
@@ -259,7 +259,7 @@ sanctuary Router {
     // Route introspection
     soul getRoutes() {
         allRoutes = []
-        
+
         // Simplified route introspection without for...in loops
         // Get routes for each HTTP method manually
         if (this.routes["GET"]) {
@@ -267,33 +267,33 @@ sanctuary Router {
             for (i = 0; i < getRoutes.length(); i = i + 1) {
                 route = getRoutes[i]
                 allRoutes.push({
-                    method: "GET",
-                    path: route.path,
-                    description: route.description,
-                    tags: route.tags,
-                    deprecated: route.deprecated,
+                    method: "GET", 
+                    path: route.path, 
+                    description: route.description, 
+                    tags: route.tags, 
+                    deprecated: route.deprecated, 
                     version: route.version
                 })
             }
         }
-        
+
         if (this.routes["POST"]) {
             postRoutes = this.routes["POST"]
             for (i = 0; i < postRoutes.length(); i = i + 1) {
                 route = postRoutes[i]
                 allRoutes.push({
-                    method: "POST",
-                    path: route.path,
-                    description: route.description,
-                    tags: route.tags,
-                    deprecated: route.deprecated,
+                    method: "POST", 
+                    path: route.path, 
+                    description: route.description, 
+                    tags: route.tags, 
+                    deprecated: route.deprecated, 
                     version: route.version
                 })
             }
         }
-        
+
         // Add other methods as needed...
-        
+
         return allRoutes
     }
 }

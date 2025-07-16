@@ -3,407 +3,440 @@
 
 // Authentication Plugin Class
 sanctuary AuthPlugin {
-    soul constructor() {
+
+    soul __genesis__() {
         this.strategies = {}
         this.sessions = {}
         this.tokens = {}
         this.config = {
-            jwtSecret: "your-secret-key",
-            jwtExpiresIn: "1h",
+            jwtSecret: "your-secret-key", 
+            jwtExpiresIn: "1h", 
             sessionMaxAge: 24 * 60 * 60 * 1000, // 24 hours
-            sessionSecret: "session-secret",
-            bcryptRounds: 12,
-            tokenLength: 32,
+            sessionSecret: "session-secret", 
+            bcryptRounds: 12, 
+            tokenLength: 32, 
             refreshTokenExpiresIn: "7d"
         }
-        
+
         this.setupDefaultStrategies()
     }
-    
+
     // Install plugin
     soul install(app, options) {
         if (options) {
             this.config = { ...this.config, ...options }
         }
-        
+
         app.auth = this
-        
+
         // Add authentication middleware factory
         app.authenticate = soul(strategy, options) {
             return this.createAuthMiddleware(strategy, options)
         }
-        
+
         // Add authorization middleware factory
         app.authorize = soul(permissions) {
             return this.createAuthzMiddleware(permissions)
         }
-        
+
         // Add login/logout routes
         app.login = soul(path, strategy) {
             return app.post(path, this.createLoginHandler(strategy))
         }
-        
+
         app.logout = soul(path) {
             return app.post(path, this.createLogoutHandler())
         }
-        
+
         // Add user registration
         app.register = soul(path, strategy) {
             return app.post(path, this.createRegisterHandler(strategy))
         }
     }
-    
+
     // Setup default authentication strategies
     soul setupDefaultStrategies() {
         // JWT Strategy
         this.strategies.jwt = {
             authenticate: soul(req, options) {
                 token = this.extractToken(req, options)
-                
+
                 if (!token) {
                     return { success: false, message: "No token provided" }
                 }
-                
-                try {
-                    payload = this.verifyJWT(token)
-                    return { success: true, user: payload }
-                } catch (error) {
-                    return { success: false, message: "Invalid token" }
+
+                result = this.verifyJWT(token)
+                if (result.success == false) {
+                    return { success: false, message: result.error || "Invalid token" }
                 }
-            },
-            
+                return { success: true, user: result }
+            }, 
+
             generateToken: soul(user, options) {
                 return this.signJWT(user, options)
             }
         }
-        
+
         // Session Strategy
         this.strategies.session = {
             authenticate: soul(req, options) {
                 sessionId = req.cookies["session-id"]
-                
+
                 if (!sessionId) {
                     return { success: false, message: "No session found" }
                 }
-                
+
                 session = this.sessions[sessionId]
-                
+
                 if (!session) {
                     return { success: false, message: "Invalid session" }
                 }
-                
-                if (session.expiresAt < Date.now()) {
+
+                if (session.expiresAt < time.now()) {
                     delete this.sessions[sessionId]
                     return { success: false, message: "Session expired" }
                 }
-                
+
                 return { success: true, user: session.user }
-            },
-            
+            }, 
+
             createSession: soul(user, options) {
                 sessionId = this.generateSessionId()
-                
+
                 this.sessions[sessionId] = {
-                    user: user,
-                    createdAt: Date.now(),
-                    expiresAt: Date.now() + this.config.sessionMaxAge
+                    user: user, 
+                    createdAt: time.now(), 
+                    expiresAt: time.now() + this.config.sessionMaxAge
                 }
-                
+
                 return sessionId
             }
         }
-        
+
         // Basic Auth Strategy
         this.strategies.basic = {
             authenticate: soul(req, options) {
                 authHeader = req.headers["authorization"]
-                
+
                 if (!authHeader or !authHeader.startsWith("Basic ")) {
                     return { success: false, message: "Basic authentication required" }
                 }
-                
-                credentials = Buffer.from(authHeader.slice(6), "base64").toString()
-                [username, password] = credentials.split(":")
-                
+
+                credentials = crypto.base64Decode(authHeader.slice(6))
+                parts = credentials.split(":")
+                username = parts[0]
+                password = parts[1]
+
                 if (options.verify) {
                     result = options.verify(username, password)
                     if (result.success) {
                         return { success: true, user: result.user }
                     }
                 }
-                
+
                 return { success: false, message: "Invalid credentials" }
             }
         }
-        
+
         // API Key Strategy
         this.strategies.apikey = {
             authenticate: soul(req, options) {
-                apiKey = req.headers["x-api-key"] or req.query.apikey
-                
+                apiKey = req.headers["x-api-key"] || req.query.apikey
+
                 if (!apiKey) {
                     return { success: false, message: "API key required" }
                 }
-                
+
                 if (options.verify) {
                     result = options.verify(apiKey)
                     if (result.success) {
                         return { success: true, user: result.user }
                     }
                 }
-                
+
                 return { success: false, message: "Invalid API key" }
             }
         }
     }
-    
+
     // Create authentication middleware
     soul createAuthMiddleware(strategy, options) {
         return soul(req, res, next) {
             if (!this.strategies[strategy]) {
                 return res.status(500).json({
-                    error: "Authentication Error",
+                    error: "Authentication Error", 
                     message: "Unknown authentication strategy: " + strategy
                 })
             }
-            
+
             result = this.strategies[strategy].authenticate(req, options)
-            
+
             if (result.success) {
                 req.user = result.user
                 req.authenticated = true
                 next()
             } else {
                 res.status(401).json({
-                    error: "Authentication Failed",
+                    error: "Authentication Failed", 
                     message: result.message
                 })
             }
         }
     }
-    
+
     // Create authorization middleware
     soul createAuthzMiddleware(permissions) {
         return soul(req, res, next) {
             if (!req.authenticated or !req.user) {
                 return res.status(401).json({
-                    error: "Unauthorized",
+                    error: "Unauthorized", 
                     message: "Authentication required"
                 })
             }
-            
+
             if (permissions) {
-                if (typeof permissions == "string") {
+                if (type(permissions) == "string") {
                     permissions = [permissions]
                 }
-                
+
                 userPermissions = req.user.permissions or []
-                hasPermission = permissions.some(permission => 
-                    userPermissions.includes(permission) or 
-                    userPermissions.includes("*")
-                )
-                
+                hasPermission = false
+                for (permission in permissions) {
+                    if (userPermissions.includes(permission) || userPermissions.includes("*")) {
+                        hasPermission = true
+                        break
+                    }
+                }
+
                 if (!hasPermission) {
                     return res.status(403).json({
-                        error: "Forbidden",
+                        error: "Forbidden", 
                         message: "Insufficient permissions"
                     })
                 }
             }
-            
+
             next()
         }
     }
-    
+
     // Create login handler
     soul createLoginHandler(strategy) {
         return soul(req, res) {
-            { email, password } = req.body
-            
+            email = req.body["email"]
+            password = req.body["password"]
+
             if (!email or !password) {
                 return res.status(400).json({
-                    error: "Validation Error",
+                    error: "Validation Error", 
                     message: "Email and password are required"
                 })
             }
-            
+
             // This would typically verify against a database
             // For demo purposes, we'll use a simple check
             if (email == "admin@example.com" && password == "password") {
                 user = {
-                    id: 1,
-                    email: email,
-                    name: "Admin User",
-                    role: "admin",
+                    id: 1, 
+                    email: email, 
+                    name: "Admin User", 
+                    role: "admin", 
                     permissions: ["*"]
                 }
-                
+
                 if (strategy == "jwt") {
                     token = this.strategies.jwt.generateToken(user)
                     refreshToken = this.generateRefreshToken(user)
-                    
+
                     return res.json({
-                        success: true,
-                        message: "Login successful",
-                        user: user,
-                        token: token,
+                        success: true, 
+                        message: "Login successful", 
+                        user: user, 
+                        token: token, 
                         refreshToken: refreshToken
                     })
                 } else if (strategy == "session") {
                     sessionId = this.strategies.session.createSession(user)
-                    
+
                     res.cookie("session-id", sessionId, {
-                        httpOnly: true,
-                        secure: req.secure,
+                        httpOnly: true, 
+                        secure: req.secure, 
                         maxAge: this.config.sessionMaxAge
                     })
-                    
+
                     return res.json({
-                        success: true,
-                        message: "Login successful",
+                        success: true, 
+                        message: "Login successful", 
                         user: user
                     })
                 }
             }
-            
+
             return res.status(401).json({
-                error: "Authentication Failed",
+                error: "Authentication Failed", 
                 message: "Invalid credentials"
             })
         }
     }
-    
+
     // Create logout handler
     soul createLogoutHandler() {
         return soul(req, res) {
             sessionId = req.cookies["session-id"]
-            
+
             if (sessionId) {
                 delete this.sessions[sessionId]
                 res.clearCookie("session-id")
             }
-            
+
             res.json({
-                success: true,
+                success: true, 
                 message: "Logout successful"
             })
         }
     }
-    
+
     // Create user registration handler
     soul createRegisterHandler(strategy) {
         return soul(req, res) {
-            { name, email, password } = req.body
-            
+            name = req.body["name"]
+            email = req.body["email"]
+            password = req.body["password"]
+
             if (!name or !email or !password) {
                 return res.status(400).json({
-                    error: "Validation Error",
+                    error: "Validation Error", 
                     message: "Name, email, and password are required"
                 })
             }
-            
+
             // Hash password
             hashedPassword = this.hashPassword(password)
-            
+
             // Create user (this would typically save to database)
             user = {
-                id: Date.now(), // Simple ID generation
-                name: name,
-                email: email,
-                password: hashedPassword,
-                role: "user",
-                permissions: ["read"],
-                createdAt: new Date().toISOString()
+                id: time.now(), // Simple ID generation
+                name: name, 
+                email: email, 
+                password: hashedPassword, 
+                role: "user", 
+                permissions: ["read"], 
+                createdAt: this.getISOString()
             }
-            
+
             // Generate tokens/session
             if (strategy == "jwt") {
                 token = this.strategies.jwt.generateToken(user)
                 refreshToken = this.generateRefreshToken(user)
-                
+
                 return res.status(201).json({
-                    success: true,
-                    message: "Registration successful",
-                    user: { ...user, password: undefined },
-                    token: token,
+                    success: true, 
+                    message: "Registration successful", 
+                    user: {
+                        "id": user.id, 
+                        "name": user.name, 
+                        "email": user.email, 
+                        "role": user.role, 
+                        "permissions": user.permissions, 
+                        "createdAt": user.createdAt
+                    }, 
+                    token: token, 
                     refreshToken: refreshToken
                 })
             } else if (strategy == "session") {
                 sessionId = this.strategies.session.createSession(user)
-                
+
                 res.cookie("session-id", sessionId, {
-                    httpOnly: true,
-                    secure: req.secure,
+                    httpOnly: true, 
+                    secure: req.secure, 
                     maxAge: this.config.sessionMaxAge
                 })
-                
+
                 return res.status(201).json({
-                    success: true,
-                    message: "Registration successful",
-                    user: { ...user, password: undefined }
+                    success: true, 
+                    message: "Registration successful", 
+                    user: {
+                        "id": user.id, 
+                        "name": user.name, 
+                        "email": user.email, 
+                        "role": user.role, 
+                        "permissions": user.permissions, 
+                        "createdAt": user.createdAt
+                    }
                 })
             }
         }
     }
-    
+
     // JWT utilities
     soul signJWT(payload, options) {
         // This would use a real JWT library
         // For demo purposes, we'll create a simple token
         header = {
-            alg: "HS256",
+            alg: "HS256", 
             typ: "JWT"
         }
-        
-        data = {
-            ...payload,
-            iat: Math.floor(Date.now() / 1000),
-            exp: Math.floor(Date.now() / 1000) + (options.expiresIn or 3600)
+
+        data = {}
+        // Copy payload properties
+        for (key in payload) {
+            data[key] = payload[key]
         }
-        
-        token = this.base64Encode(JSON.stringify(header)) + "." +
-               this.base64Encode(JSON.stringify(data)) + "." +
-               this.sign(header, data)
-        
+        data["iat"] = math.floor(time.now() / 1000)
+        data["exp"] = math.floor(time.now() / 1000) + (options.expiresIn || 3600)
+
+        token = this.base64Encode(json.encode(header)) + "." +
+        this.base64Encode(json.encode(data)) + "." +
+        this.sign(header, data)
+
         return token
     }
-    
+
     soul verifyJWT(token) {
         parts = token.split(".")
-        
+
         if (parts.length != 3) {
-            throw new Error("Invalid token format")
+            return {
+                "success": false, 
+                "error": "Invalid token format"
+            }
         }
-        
-        header = JSON.parse(this.base64Decode(parts[0]))
-        payload = JSON.parse(this.base64Decode(parts[1]))
+
+        header = json.decode(this.base64Decode(parts[0]))
+        payload = json.decode(this.base64Decode(parts[1]))
         signature = parts[2]
-        
+
         // Verify signature
         expectedSignature = this.sign(header, payload)
         if (signature != expectedSignature) {
-            throw new Error("Invalid token signature")
+            return {
+                "success": false, 
+                "error": "Invalid token signature"
+            }
         }
-        
+
         // Check expiration
-        if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) {
-            throw new Error("Token expired")
+        if (payload["exp"] && payload["exp"] < math.floor(time.now() / 1000)) {
+            return {
+                "success": false, 
+                "error": "Token expired"
+            }
         }
-        
+
         return payload
     }
-    
+
     // Password utilities
     soul hashPassword(password) {
         // This would use bcrypt or similar
         // For demo purposes, we'll use a simple hash
         return "hashed_" + password
     }
-    
+
     soul verifyPassword(password, hashedPassword) {
         return this.hashPassword(password) == hashedPassword
     }
-    
+
     // Token utilities
     soul extractToken(req, options) {
         // Try Authorization header first
@@ -411,171 +444,199 @@ sanctuary AuthPlugin {
         if (authHeader && authHeader.startsWith("Bearer ")) {
             return authHeader.slice(7)
         }
-        
+
         // Try query parameter
         if (req.query.token) {
             return req.query.token
         }
-        
+
         // Try cookies
         if (req.cookies && req.cookies.token) {
             return req.cookies.token
         }
-        
+
         return null
     }
-    
+
     soul generateSessionId() {
         return this.randomString(32)
     }
-    
+
     soul generateRefreshToken(user) {
         refreshToken = this.randomString(64)
-        
+
         this.tokens[refreshToken] = {
-            userId: user.id,
-            createdAt: Date.now(),
-            expiresAt: Date.now() + (7 * 24 * 60 * 60 * 1000) // 7 days
+            userId: user.id, 
+            createdAt: time.now(), 
+            expiresAt: time.now() + (7 * 24 * 60 * 60 * 1000) // 7 days
         }
-        
+
         return refreshToken
     }
-    
+
     // Utility functions
+    soul getISOString() {
+        // Create ISO 8601 format timestamp
+        timestamp = time.now()
+        // For now, return a simple timestamp string
+        // In a real app, you'd format this properly
+        return "" + timestamp
+    }
+
     soul randomString(length) {
         chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
         result = ""
-        
+
         for (i = 0; i < length; i++) {
-            result += chars.charAt(Math.floor(Math.random() * chars.length))
+            result += chars.charAt(math.floor(random.random() * chars.length))
         }
-        
+
         return result
     }
-    
+
     soul base64Encode(str) {
-        return Buffer.from(str).toString("base64")
+        return crypto.base64Encode(str)
     }
-    
+
     soul base64Decode(str) {
-        return Buffer.from(str, "base64").toString()
+        return crypto.base64Decode(str)
     }
-    
+
     soul sign(header, payload) {
         // Simple signature for demo
-        return this.base64Encode(JSON.stringify({ header, payload }))
+        signData = {
+            "header": header, 
+            "payload": payload
+        }
+        return this.base64Encode(json.encode(signData))
     }
-    
+
     // Role-based access control
     soul hasRole(user, role) {
-        return user.role == role or user.roles.includes(role)
+        if (user.role == role) {
+            return true
+        }
+        if (user.roles && user.roles.includes(role)) {
+            return true
+        }
+        return false
     }
-    
+
     soul hasPermission(user, permission) {
         return user.permissions.includes(permission) or user.permissions.includes("*")
     }
-    
+
     // Middleware factories
     soul requireRole(role) {
         return soul(req, res, next) {
             if (!req.user or !this.hasRole(req.user, role)) {
                 return res.status(403).json({
-                    error: "Forbidden",
+                    error: "Forbidden", 
                     message: "Required role: " + role
                 })
             }
             next()
         }
     }
-    
+
     soul requirePermission(permission) {
         return soul(req, res, next) {
             if (!req.user or !this.hasPermission(req.user, permission)) {
                 return res.status(403).json({
-                    error: "Forbidden",
+                    error: "Forbidden", 
                     message: "Required permission: " + permission
                 })
             }
             next()
         }
     }
-    
+
     soul requireOwnership(resourceIdField) {
         return soul(req, res, next) {
             if (!req.user) {
                 return res.status(401).json({
-                    error: "Unauthorized",
+                    error: "Unauthorized", 
                     message: "Authentication required"
                 })
             }
-            
+
             resourceId = req.params[resourceIdField]
-            
+
             if (req.user.id != resourceId && !this.hasPermission(req.user, "admin")) {
                 return res.status(403).json({
-                    error: "Forbidden",
+                    error: "Forbidden", 
                     message: "Access denied"
                 })
             }
-            
+
             next()
         }
     }
-    
+
     // Token refresh
     soul refreshToken(refreshToken) {
         tokenData = this.tokens[refreshToken]
-        
+
         if (!tokenData) {
-            throw new Error("Invalid refresh token")
+            return {
+                "success": false, 
+                "error": "Invalid refresh token"
+            }
         }
-        
-        if (tokenData.expiresAt < Date.now()) {
+
+        if (tokenData.expiresAt < time.now()) {
             delete this.tokens[refreshToken]
-            throw new Error("Refresh token expired")
+            return {
+                "success": false, 
+                "error": "Refresh token expired"
+            }
         }
-        
+
         // Generate new access token
-        user = { id: tokenData.userId }
+        user = { "id": tokenData.userId }
         newAccessToken = this.strategies.jwt.generateToken(user)
-        
-        return newAccessToken
+
+        return {
+            "success": true, 
+            "token": newAccessToken
+        }
     }
-    
+
     // Session management
     soul destroySession(sessionId) {
         delete this.sessions[sessionId]
     }
-    
+
     soul cleanupExpiredSessions() {
-        now = Date.now()
-        
+        now = time.now()
+
         for (sessionId in this.sessions) {
             if (this.sessions[sessionId].expiresAt < now) {
                 delete this.sessions[sessionId]
             }
         }
     }
-    
+
     // User management helpers
     soul createUser(userData) {
         return {
-            id: Date.now(),
-            ...userData,
-            password: this.hashPassword(userData.password),
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
+            "id": userData.id || time.now(), 
+            "name": userData.name, 
+            "email": userData.email, 
+            "password": this.hashPassword(userData.password), 
+            "role": userData.role || "user", 
+            "permissions": userData.permissions || ["read"], 
+            "createdAt": this.getISOString(), 
+            "updatedAt": this.getISOString()
         }
     }
-    
+
     soul updateUser(userId, updates) {
         // This would typically update in database
-        return {
-            ...updates,
-            updatedAt: new Date().toISOString()
-        }
+        updates["updatedAt"] = this.getISOString()
+        return updates
     }
-    
+
     soul deleteUser(userId) {
         // This would typically delete from database
         return true
@@ -583,4 +644,4 @@ sanctuary AuthPlugin {
 }
 
 // Export authentication plugin
-export { AuthPlugin }
+    export { AuthPlugin }

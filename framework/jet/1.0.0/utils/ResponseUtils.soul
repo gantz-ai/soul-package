@@ -2,6 +2,7 @@
 // Utility functions for HTTP responses
 
 sanctuary ResponseUtils {
+
     soul __genesis__() {
         // Utility class - no instance variables needed
     }
@@ -9,64 +10,64 @@ sanctuary ResponseUtils {
     // Format error response
     soul formatError(error, statusCode, includeStack) {
         response = {
-            error: error.name || "Internal Server Error",
-            message: error.message || "Something went wrong",
-            status: statusCode || 500,
+            error: error.name || "Internal Server Error", 
+            message: error.message || "Something went wrong", 
+            status: statusCode || 500, 
             timestamp: time.now()
         }
-        
+
         if (includeStack && error.stack) {
             response.stack = error.stack
         }
-        
+
         return response
     }
 
     // Format success response
     soul formatSuccess(data, message) {
         response = {
-            success: true,
+            success: true, 
             timestamp: time.now()
         }
-        
+
         if (message) {
             response.message = message
         }
-        
+
         if (data != null) {
             response.data = data
         }
-        
+
         return response
     }
 
     // Format paginated response
     soul formatPaginated(data, pagination) {
         response = {
-            success: true,
-            data: data,
+            success: true, 
+            data: data, 
             pagination: {
-                page: pagination.page || 1,
-                limit: pagination.limit || 10,
-                total: pagination.total || 0,
-                pages: Math.ceil(pagination.total / pagination.limit) || 1
-            },
+                page: pagination.page || 1, 
+                limit: pagination.limit || 10, 
+                total: pagination.total || 0, 
+                pages: math.ceil(pagination.total / pagination.limit) || 1
+            }, 
             timestamp: time.now()
         }
-        
+
         return response
     }
 
     // Format validation error response
     soul formatValidationError(errors) {
         response = {
-            error: "Validation Error",
-            message: "The request contains invalid data",
-            details: errors,
-            status: 400,
+            error: "Validation Error", 
+            message: "The request contains invalid data", 
+            details: errors, 
+            status: 400, 
             timestamp: time.now()
         }
-        
+
         return response
     }
 
@@ -82,44 +83,44 @@ sanctuary ResponseUtils {
     // Set CORS headers
     soul setCorsHeaders(res, options) {
         corsOptions = {
-            origin: options.origin || "*",
-            methods: options.methods || ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-            headers: options.headers || ["Content-Type", "Authorization"],
+            origin: options.origin || "*", 
+            methods: options.methods || ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"], 
+            headers: options.headers || ["Content-Type", "Authorization"], 
             credentials: options.credentials || false
         }
-        
+
         res.header("Access-Control-Allow-Origin", corsOptions.origin)
         res.header("Access-Control-Allow-Methods", corsOptions.methods.join(","))
         res.header("Access-Control-Allow-Headers", corsOptions.headers.join(","))
-        
+
         if (corsOptions.credentials) {
             res.header("Access-Control-Allow-Credentials", "true")
         }
-        
+
         return res
     }
 
     // Content negotiation
     soul negotiateContent(req, supportedTypes) {
         acceptHeader = req.headers["Accept"] || "application/json"
-        
+
         // Simple content negotiation - prioritize JSON
         if (acceptHeader.includes("application/json")) {
             return "application/json"
         }
-        
+
         if (acceptHeader.includes("text/html")) {
             return "text/html"
         }
-        
+
         if (acceptHeader.includes("text/plain")) {
             return "text/plain"
         }
-        
+
         if (acceptHeader.includes("application/xml")) {
             return "application/xml"
         }
-        
+
         // Default to JSON
         return "application/json"
     }
@@ -136,7 +137,7 @@ sanctuary ResponseUtils {
                 hash = hash % 1000000 // Keep hash manageable
             }
         }
-        return '"' + Math.abs(hash).toString() + '"'
+        return '"' + math.abs(hash).toString() + '"'
     }
 
     // Check if request matches ETag
@@ -153,7 +154,7 @@ sanctuary ResponseUtils {
         }
         return res
     }
-    
+
     // Render HTML template response
     soul renderTemplate(res, app, templateName, data, options) {
         if (!data) {
@@ -162,34 +163,34 @@ sanctuary ResponseUtils {
         if (!options) {
             options = {}
         }
-        
+
         try {
             html = app.render(templateName, data, options)
             res.header("Content-Type", "text/html; charset=utf-8")
             res.send(html)
         } catch (error) {
-            Console.log("[ResponseUtils] Template render error: " + error.message)
+            console.log("[ResponseUtils] Template render error: " + error.message)
             res.status(500).send("<h1>Internal Server Error</h1><p>Template rendering failed</p>")
         }
-        
+
         return res
     }
-    
+
     // Render HTML string response
     soul renderString(res, app, template, data) {
         if (!data) {
             data = {}
         }
-        
+
         try {
             html = app.renderString(template, data)
             res.header("Content-Type", "text/html; charset=utf-8")
             res.send(html)
         } catch (error) {
-            Console.log("[ResponseUtils] String render error: " + error.message)
+            console.log("[ResponseUtils] String render error: " + error.message)
             res.status(500).send("<h1>Internal Server Error</h1><p>Template rendering failed</p>")
         }
-        
+
         return res
     }
 }

@@ -4,6 +4,8 @@
 import { Console } from "console"
 import { Router } from "../router/Router.soul"
 import { MiddlewareManager } from "../middleware/MiddlewareManager.soul"
+import { ControllerManager } from "../controller/ControllerManager.soul"
+import { ResourceManager } from "../resources/ResourceManager.soul"
 import { HtmlRenderer } from "../utils/HtmlRenderer.soul"
 
 sanctuary Jet {
@@ -22,6 +24,8 @@ sanctuary Jet {
         this.router = Router.new()
         this.middlewareManager = MiddlewareManager.new()
         this.htmlRenderer = HtmlRenderer()
+        this.controllerManager = ControllerManager.new(this)
+        this.resourceManager = ResourceManager.new(this)
         
         // Settings
         this.settings = {
@@ -122,11 +126,7 @@ sanctuary Jet {
     
     // Enhanced architecture registration methods
     soul registerController(name, controller) {
-        this.controllers[name] = controller
-        if (controller.setApp) {
-            controller.setApp(this)
-        }
-        return this
+        return this.controllerManager.register(name, controller)
     }
     
     soul registerService(name, service) {
@@ -151,11 +151,7 @@ sanctuary Jet {
     }
     
     soul getController(name) {
-        if (!this.controllers) {
-            return null
-        }
-        
-        return this.controllers[name]
+        return this.controllerManager.get(name)
     }
     
     soul getService(name) {
@@ -171,6 +167,10 @@ sanctuary Jet {
     
     soul getModel(name) {
         return this.models[name]
+    }
+
+    soul registerResources(directories) {
+        return this.resourceManager.register(directories)
     }
 
     // Middleware delegation
@@ -209,173 +209,7 @@ sanctuary Jet {
 
     // Enhanced static file serving
     soul static(urlPath, localPath) {
-        // Ensure server is created before registering static files
-        if (!this.server) {
-            this.server = http.createServer(this.port)
-        }
-        
-        // Pass the path through - the web server will resolve it
-        resolvedPath = localPath
-        
-        // Simple default options
-        options = {
-            index: ["index.html", "index.htm"],
-            dotfiles: "ignore",
-            etag: true,
-            extensions: ["html", "htm"],
-            fallthrough: true,
-            immutable: false,
-            lastModified: true,
-            maxAge: 0,
-            redirect: true,
-            setHeaders: null
-        }
-        
-        // Register wildcard route for static files
-        staticUrlPath = urlPath
-        
-        // If path already has /*, use it as-is
-        // If path ends with *, convert to /* 
-        // If path has no wildcard, add /*
-        if (staticUrlPath.includes("/*")) {
-            // Path already has /* wildcard
-        } else if (staticUrlPath.charAt(staticUrlPath.length() - 1) == "*") {
-            staticUrlPath = staticUrlPath.substring(0, staticUrlPath.length() - 1) + "/*"
-        } else {
-            staticUrlPath = staticUrlPath + "/*"
-        }
-        
-        console.log("✅ Registering static route: " + staticUrlPath + " -> " + resolvedPath)
-        
-        // Register with Soul's web server for static file handling
-        // Use the original path (without wildcard) for Soul's static method
-        cleanPath = urlPath
-        if (cleanPath.endsWith("/*")) {
-            cleanPath = cleanPath.substring(0, cleanPath.length() - 2)
-        }
-        
-        try {
-            if (this.server && this.server.static) {
-                this.server.static(cleanPath, resolvedPath)
-            }
-        } catch (error) {
-            console.log("❌ Error calling server.static(): " + error)
-        }
-        
-        // Also register with Jet router as fallback
-        this.get(staticUrlPath, soul(req, res) {
-            console.log("🎯 Static file request matched: " + req.path + " via pattern: " + staticUrlPath)
-            this.serveStaticFile(req, res, urlPath, resolvedPath, options)
-        })
-        
-        // Also add debugging to see what patterns we're registering
-        
-        return this
-    }
-    
-    // Static file serving implementation
-    soul serveStaticFile(req, res, urlPath, localPath, options) {
-        try {
-            requestPath = req.path
-            
-            // Remove URL prefix to get relative file path
-            if (requestPath.startsWith(urlPath)) {
-                relativePath = requestPath.substring(urlPath.length())
-                
-                // Remove leading slash
-                if (relativePath.startsWith("/")) {
-                    relativePath = relativePath.substring(1)
-                }
-            } else {
-                relativePath = requestPath
-            }
-            
-            // Security: prevent directory traversal
-            if (relativePath.includes("..") || relativePath.includes("~")) {
-                console.log("❌ Directory traversal blocked: " + relativePath)
-                res.status(403).send("Forbidden")
-                return
-            }
-            
-            // Construct full file path
-            fullPath = localPath + "/" + relativePath
-            
-            console.log("📄 Serving: " + requestPath + " -> " + fullPath)
-            
-            // Read file
-            content = io.read(fullPath)
-            
-            // Get file extension and MIME type
-            extension = this.getFileExtension(relativePath)
-            mimeType = this.getMimeType(extension)
-            
-            // Set headers
-            res.header("Content-Type", mimeType)
-            
-            // Cache headers based on environment
-            if (this.settings.env == "development") {
-                res.header("Cache-Control", "no-cache, no-store, must-revalidate")
-                res.header("Pragma", "no-cache")
-                res.header("Expires", "0")
-            } else {
-                res.header("Cache-Control", "public, max-age=31536000")
-                res.header("ETag", '"' + content.length() + '"')
-            }
-            
-            // Security headers
-            res.header("X-Content-Type-Options", "nosniff")
-            
-            res.send(content)
-            
-        } catch (error) {
-            console.log("❌ Static file error: " + error)
-            res.status(404).send("Not Found")
-        }
-    }
-    
-    // Helper to get file extension
-    soul getFileExtension(filePath) {
-        if (!filePath || filePath.length() == 0) {
-            return ""
-        }
-        
-        lastDotIndex = filePath.lastIndexOf(".")
-        if (lastDotIndex == -1) {
-            return ""
-        }
-        
-        return filePath.substring(lastDotIndex + 1).toLowerCase()
-    }
-    
-    // Helper to get MIME type
-    soul getMimeType(extension) {
-        mimeTypes = {
-            "css": "text/css; charset=utf-8",
-            "js": "application/javascript; charset=utf-8",
-            "html": "text/html; charset=utf-8",
-            "htm": "text/html; charset=utf-8",
-            "json": "application/json; charset=utf-8",
-            "png": "image/png",
-            "jpg": "image/jpeg",
-            "jpeg": "image/jpeg",
-            "gif": "image/gif",
-            "svg": "image/svg+xml",
-            "ico": "image/x-icon",
-            "webp": "image/webp",
-            "woff": "font/woff",
-            "woff2": "font/woff2",
-            "ttf": "font/ttf",
-            "otf": "font/otf",
-            "txt": "text/plain; charset=utf-8",
-            "pdf": "application/pdf",
-            "zip": "application/zip"
-        }
-        
-        if (mimeTypes[extension]) {
-            return mimeTypes[extension]
-        }
-        
-        return "application/octet-stream"
+        return this.resourceManager.static(urlPath, localPath)
     }
 
     soul error(handler) {
@@ -435,90 +269,7 @@ sanctuary Jet {
     
     // Enhanced routing with controller integration
     soul controller(controllerName, methodName) {
-        console.log("🔍 [CONTROLLER SETUP] Creating controller wrapper for " + controllerName + "." + methodName)
-        console.log("🔍 [CONTROLLER SETUP] this: " + this)
-        console.log("🔍 [CONTROLLER SETUP] this.controllers: " + this.controllers)
-        
-        // Capture the app context
-        app = this
-        
-        return soul(req, res, next) {
-            console.log("🔍 [CONTROLLER] " + controllerName + "." + methodName + " called")
-            console.log("🔍 [CONTROLLER] app context: " + app)
-            console.log("🔍 [CONTROLLER] app.controllers: " + app.controllers)
-            
-            try {
-                // Safely get controller with null checks
-                if (!controllerName) {
-                    return res.status(500).json({
-                        error: "Internal Server Error",
-                        message: "Invalid controller name"
-                    })
-                }
-                
-                if (!methodName) {
-                    return res.status(500).json({
-                        error: "Internal Server Error",
-                        message: "Invalid method name"
-                    })
-                }
-                
-                console.log("🔍 [CONTROLLER] Getting controller: " + controllerName)
-                controller = app.getController(controllerName)
-                console.log("🔍 [CONTROLLER] Controller retrieved: " + controller)
-                
-                if (!controller) {
-                    console.log("❌ [CONTROLLER] Controller not found: " + controllerName)
-                    return res.status(500).json({
-                        error: "Internal Server Error",
-                        message: "Controller '" + controllerName + "' not found"
-                    })
-                }
-                
-                console.log("🔍 [CONTROLLER] Checking if method exists: " + methodName)
-                
-                // For Soul class instances, we need to call methods directly
-                // We can't use bracket notation to access methods dynamically
-                console.log("🔍 [CONTROLLER] Calling method directly on controller instance")
-                
-                if (!controller) {
-                    console.log("❌ [CONTROLLER] Controller is null")
-                    return res.status(500).json({
-                        error: "Internal Server Error", 
-                        message: "Controller '" + controllerName + "' is null"
-                    })
-                }
-                
-                // Call controller method safely - use conditional for known methods
-                console.log("🔍 [CONTROLLER] About to call method: " + methodName)
-                
-                if (methodName == "login") {
-                    console.log("🔍 [CONTROLLER] Calling login method")
-                    controller.login(req, res)
-                } else if (methodName == "register") {
-                    console.log("🔍 [CONTROLLER] Calling register method")
-                    controller.register(req, res)
-                } else if (methodName == "verify") {
-                    console.log("🔍 [CONTROLLER] Calling verify method")
-                    controller.verify(req, res)
-                } else {
-                    console.log("❌ [CONTROLLER] Unknown method: " + methodName)
-                    return res.status(500).json({
-                        error: "Internal Server Error",
-                        message: "Method '" + methodName + "' not supported"
-                    })
-                }
-                
-                console.log("🔍 [CONTROLLER] method call completed")
-                
-            } catch (error) {
-                console.log("❌ Controller error: " + error)
-                return res.status(500).json({
-                    error: "Internal Server Error",
-                    message: "Error executing controller method"
-                })
-            }
-        }
+        return this.controllerManager.createHandler(controllerName, methodName)
     }
 
     // Server lifecycle
@@ -531,10 +282,6 @@ sanctuary Jet {
         
         // Register routes directly with the HTTP server
         this.router.registerRoutes(this.server)
-        
-        this.logger.info("🚀 Jet server starting on port " + this.port)
-        this.logger.info("📍 Environment: " + this.settings.env)
-        this.logger.info("🌐 Visit: http://localhost:" + this.port)
         
         if (callback) {
             callback()

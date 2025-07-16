@@ -4,6 +4,7 @@
 import { Console } from "console"
 
 sanctuary MiddlewareManager {
+
     soul __genesis__() {
         this.middlewares = []
         this.errorHandlers = []
@@ -14,40 +15,40 @@ sanctuary MiddlewareManager {
     soul initializeDefaultConfigs() {
         return {
             cors: {
-                origin: "*",
-                methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-                headers: ["Content-Type", "Authorization"],
-                credentials: false,
-                maxAge: 86400,
+                origin: "*", 
+                methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"], 
+                headers: ["Content-Type", "Authorization"], 
+                credentials: false, 
+                maxAge: 86400, 
                 preflightContinue: false
-            },
+            }, 
             helmet: {
-                contentSecurityPolicy: true,
-                frameguard: true,
-                hidePoweredBy: true,
-                noSniff: true,
+                contentSecurityPolicy: true, 
+                frameguard: true, 
+                hidePoweredBy: true, 
+                noSniff: true, 
                 xssFilter: true
-            },
+            }, 
             compression: {
-                level: 6,
-                threshold: 1024,
+                level: 6, 
+                threshold: 1024, 
                 filter: null
-            },
+            }, 
             rateLimit: {
-                windowMs: 900000,
-                max: 100,
+                windowMs: 900000, 
+                max: 100, 
                 message: "Too many requests"
-            },
+            }, 
             staticFiles: {
-                index: "index.html",
-                dotfiles: "ignore",
-                etag: true,
-                extensions: false,
-                fallthrough: true,
-                immutable: false,
-                lastModified: true,
-                maxAge: 0,
-                redirect: true,
+                index: "index.html", 
+                dotfiles: "ignore", 
+                etag: true, 
+                extensions: false, 
+                fallthrough: true, 
+                immutable: false, 
+                lastModified: true, 
+                maxAge: 0, 
+                redirect: true, 
                 setHeaders: null
             }
         }
@@ -56,14 +57,14 @@ sanctuary MiddlewareManager {
     // Middleware system
     soul use(middleware, unused, app) {
         console.log("🔍 [MIDDLEWARE MANAGER] Registering middleware: " + middleware)
-        
+
         // Add middleware directly (debug logging removed for performance)
         wrappedMiddleware = middleware
-        
+
         // Add middleware to apply to all paths
         this.middlewares.push({
-            path: "*",
-            handler: wrappedMiddleware,
+            path: "*", 
+            handler: wrappedMiddleware, 
             type: "middleware"
         })
         console.log("🔍 [MIDDLEWARE MANAGER] Middleware registered. Total count: " + this.middlewares.length())
@@ -74,71 +75,71 @@ sanctuary MiddlewareManager {
     soul mergeWithDefaults(key, options) {
         if (key == "cors") {
             return {
-                origin: options && options.origin ? options.origin : "*",
-                methods: options && options.methods ? options.methods : ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-                headers: options && options.headers ? options.headers : ["Content-Type", "Authorization"],
-                credentials: options && options.credentials ? options.credentials : false,
-                maxAge: options && options.maxAge ? options.maxAge : 86400,
+                origin: options && options.origin ? options.origin : "*", 
+                methods: options && options.methods ? options.methods : ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"], 
+                headers: options && options.headers ? options.headers : ["Content-Type", "Authorization"], 
+                credentials: options && options.credentials ? options.credentials : false, 
+                maxAge: options && options.maxAge ? options.maxAge : 86400, 
                 preflightContinue: options && options.preflightContinue ? options.preflightContinue : false
             }
         } else if (key == "helmet") {
             return {
-                contentSecurityPolicy: options && options.contentSecurityPolicy ? options.contentSecurityPolicy : true,
-                frameguard: options && options.frameguard ? options.frameguard : true,
-                hidePoweredBy: options && options.hidePoweredBy ? options.hidePoweredBy : true,
-                noSniff: options && options.noSniff ? options.noSniff : true,
+                contentSecurityPolicy: options && options.contentSecurityPolicy ? options.contentSecurityPolicy : true, 
+                frameguard: options && options.frameguard ? options.frameguard : true, 
+                hidePoweredBy: options && options.hidePoweredBy ? options.hidePoweredBy : true, 
+                noSniff: options && options.noSniff ? options.noSniff : true, 
                 xssFilter: options && options.xssFilter ? options.xssFilter : true
             }
         } else if (key == "compression") {
             return {
-                level: options && options.level ? options.level : 6,
-                threshold: options && options.threshold ? options.threshold : 1024,
+                level: options && options.level ? options.level : 6, 
+                threshold: options && options.threshold ? options.threshold : 1024, 
                 filter: options && options.filter ? options.filter : null
             }
         } else if (key == "rateLimit") {
             return {
-                windowMs: options && options.windowMs ? options.windowMs : 900000,
-                max: options && options.max ? options.max : 100,
+                windowMs: options && options.windowMs ? options.windowMs : 900000, 
+                max: options && options.max ? options.max : 100, 
                 message: options && options.message ? options.message : "Too many requests"
             }
         } else if (key == "staticFiles") {
             return {
-                index: options && options.index ? options.index : "index.html",
-                dotfiles: options && options.dotfiles ? options.dotfiles : "ignore",
-                etag: options && options.etag ? options.etag : true,
-                extensions: options && options.extensions ? options.extensions : false,
-                fallthrough: options && options.fallthrough ? options.fallthrough : true,
-                immutable: options && options.immutable ? options.immutable : false,
-                lastModified: options && options.lastModified ? options.lastModified : true,
-                maxAge: options && options.maxAge ? options.maxAge : 0,
-                redirect: options && options.redirect ? options.redirect : true,
+                index: options && options.index ? options.index : "index.html", 
+                dotfiles: options && options.dotfiles ? options.dotfiles : "ignore", 
+                etag: options && options.etag ? options.etag : true, 
+                extensions: options && options.extensions ? options.extensions : false, 
+                fallthrough: options && options.fallthrough ? options.fallthrough : true, 
+                immutable: options && options.immutable ? options.immutable : false, 
+                lastModified: options && options.lastModified ? options.lastModified : true, 
+                maxAge: options && options.maxAge ? options.maxAge : 0, 
+                redirect: options && options.redirect ? options.redirect : true, 
                 setHeaders: options && options.setHeaders ? options.setHeaders : null
             }
         }
-        
+
         return {}
     }
 
     // Advanced middleware
     soul cors(options, app) {
         corsConfig = this.mergeWithDefaults("cors", options)
-        
+
         corsMiddleware = soul(req, res, next) {
             console.log("🔍 [CORS] Middleware entry")
-            
+
             // Set CORS headers
             res.header("Access-Control-Allow-Origin", corsConfig.origin)
             res.header("Access-Control-Allow-Methods", corsConfig.methods.join(","))
             res.header("Access-Control-Allow-Headers", corsConfig.headers.join(","))
-            
+
             if (corsConfig.credentials) {
                 res.header("Access-Control-Allow-Credentials", "true")
             }
-            
+
             if (corsConfig.maxAge) {
                 res.header("Access-Control-Max-Age", corsConfig.maxAge.toString())
             }
-            
+
             console.log("🔍 [CORS] Checking request method...")
             if (req && req.method == "OPTIONS") {
                 console.log("🔍 [CORS] OPTIONS request detected")
@@ -154,8 +155,8 @@ sanctuary MiddlewareManager {
             console.log("🔍 [CORS] Middleware completed")
         }
         this.middlewares.push({
-            path: "*",
-            handler: corsMiddleware,
+            path: "*", 
+            handler: corsMiddleware, 
             type: "middleware"
         })
         return app
@@ -163,33 +164,33 @@ sanctuary MiddlewareManager {
 
     soul helmet(options, app) {
         helmetConfig = this.mergeWithDefaults("helmet", options)
-        
+
         helmetMiddleware = soul(req, res, next) {
             if (helmetConfig.hidePoweredBy) {
                 res.removeHeader("X-Powered-By")
             }
-            
+
             if (helmetConfig.frameguard) {
                 res.header("X-Frame-Options", "DENY")
             }
-            
+
             if (helmetConfig.noSniff) {
                 res.header("X-Content-Type-Options", "nosniff")
             }
-            
+
             if (helmetConfig.xssFilter) {
                 res.header("X-XSS-Protection", "1; mode=block")
             }
-            
+
             if (helmetConfig.contentSecurityPolicy) {
                 res.header("Content-Security-Policy", "default-src 'self'")
             }
-            
+
             next()
         }
         this.middlewares.push({
-            path: "*",
-            handler: helmetMiddleware,
+            path: "*", 
+            handler: helmetMiddleware, 
             type: "middleware"
         })
         return app
@@ -197,21 +198,21 @@ sanctuary MiddlewareManager {
 
     soul compression(options, app) {
         compressConfig = this.mergeWithDefaults("compression", options)
-        
+
         compressionMiddleware = soul(req, res, next) {
             // Basic compression middleware
             acceptEncoding = req.headers["Accept-Encoding"] || ""
-            
+
             if (acceptEncoding.includes("gzip")) {
                 res.header("Content-Encoding", "gzip")
                 res.header("Vary", "Accept-Encoding")
             }
-            
+
             next()
         }
         this.middlewares.push({
-            path: "*",
-            handler: compressionMiddleware,
+            path: "*", 
+            handler: compressionMiddleware, 
             type: "middleware"
         })
         return app
@@ -219,16 +220,16 @@ sanctuary MiddlewareManager {
 
     soul rateLimit(options, app) {
         limitConfig = this.mergeWithDefaults("rateLimit", options)
-        
+
         requests = {}
-        
+
         rateLimitMiddleware = soul(req, res, next) {
             console.log("🔍 [RATE LIMIT] Middleware entry")
-            
+
             // Safe key extraction with multiple fallbacks
             key = "unknown"
             console.log("🔍 [RATE LIMIT] Initial key set to: " + key)
-            
+
             console.log("🔍 [RATE LIMIT] Checking req object...")
             if (req) {
                 console.log("🔍 [RATE LIMIT] req exists, checking req.ip...")
@@ -241,49 +242,49 @@ sanctuary MiddlewareManager {
             } else {
                 console.log("❌ [RATE LIMIT] req is null!")
             }
-            
+
             now = time.now()
-            
+
             // Ensure requests object exists
             if (!requests) {
                 requests = {}
             }
-            
+
             // Initialize request tracking for this key
             if (!requests[key]) {
                 requests[key] = {
-                    count: 0,
+                    count: 0, 
                     resetTime: now + limitConfig.windowMs
                 }
             }
-            
+
             // Check if we need to reset the window
             if (requests[key] && now > requests[key].resetTime) {
                 requests[key].count = 0
                 requests[key].resetTime = now + limitConfig.windowMs
             }
-            
+
             // Increment counter safely
             if (requests[key]) {
                 requests[key].count++
-                
+
                 // Check rate limit
                 if (requests[key].count > limitConfig.max) {
                     res.status(429).json({
-                        error: "Too Many Requests",
+                        error: "Too Many Requests", 
                         message: limitConfig.message
                     })
-                    return
+                    return 
                 }
             }
-            
+
             console.log("🔍 [RATE LIMIT] Calling next()...")
             next()
             console.log("🔍 [RATE LIMIT] next() completed")
         }
         this.middlewares.push({
-            path: "*",
-            handler: rateLimitMiddleware,
+            path: "*", 
+            handler: rateLimitMiddleware, 
             type: "middleware"
         })
         return app
@@ -292,36 +293,36 @@ sanctuary MiddlewareManager {
     // Authentication middleware
     soul auth(strategy, options, app) {
         authConfig = {
-            strategy: strategy,
+            strategy: strategy, 
             options: options || {}
         }
-        
+
         if (strategy == "jwt") {
             jwtMiddleware = soul(req, res, next) {
                 token = null
                 if (req && req.headers) {
                     token = req.headers["authorization"]
                 }
-                
+
                 if (!token) {
                     return res.status(401).json({
-                        error: "Unauthorized",
+                        error: "Unauthorized", 
                         message: "No token provided"
                     })
                 }
-                
+
                 if (token.startsWith("Bearer ")) {
                     token = token.slice(7)
                 }
-                
+
                 // JWT verification would go here
                 // For now, just pass through
                 req.user = { id: 1, username: "user" }
                 next()
             }
             this.middlewares.push({
-                path: "*",
-                handler: jwtMiddleware,
+                path: "*", 
+                handler: jwtMiddleware, 
                 type: "middleware"
             })
             return app
@@ -331,21 +332,21 @@ sanctuary MiddlewareManager {
                 if (req && req.headers) {
                     auth = req.headers["authorization"]
                 }
-                
+
                 if (!auth || !auth.startsWith("Basic ")) {
                     return res.status(401).json({
-                        error: "Unauthorized",
+                        error: "Unauthorized", 
                         message: "Basic authentication required"
                     })
                 }
-                
+
                 // Basic auth verification would go here
                 req.user = { id: 1, username: "user" }
                 next()
             }
             this.middlewares.push({
-                path: "*",
-                handler: basicMiddleware,
+                path: "*", 
+                handler: basicMiddleware, 
                 type: "middleware"
             })
             return app
@@ -355,26 +356,26 @@ sanctuary MiddlewareManager {
                 if (req && req.cookies) {
                     sessionId = req.cookies["session-id"]
                 }
-                
+
                 if (!sessionId) {
                     return res.status(401).json({
-                        error: "Unauthorized",
+                        error: "Unauthorized", 
                         message: "No session found"
                     })
                 }
-                
+
                 // Session verification would go here
                 req.user = { id: 1, username: "user" }
                 next()
             }
             this.middlewares.push({
-                path: "*",
-                handler: sessionMiddleware,
+                path: "*", 
+                handler: sessionMiddleware, 
                 type: "middleware"
             })
             return app
         }
-        
+
         return app
     }
 
@@ -382,108 +383,108 @@ sanctuary MiddlewareManager {
     soul validate(schema) {
         return soul(req, res, next) {
             errors = this.validateRequest(req, schema)
-            
+
             if (errors.length() > 0) {
                 return res.status(400).json({
-                    error: "Validation Error",
+                    error: "Validation Error", 
                     details: errors
                 })
             }
-            
+
             next()
         }
     }
 
     soul validateRequest(req, schema) {
         errors = []
-        
+
         if (schema.body) {
             bodyErrors = this.validateObject(req.body, schema.body, "body")
             for (i = 0; i < bodyErrors.length(); i = i + 1) {
                 errors.push(bodyErrors[i])
             }
         }
-        
+
         if (schema.params) {
             paramErrors = this.validateObject(req.params, schema.params, "params")
             for (i = 0; i < paramErrors.length(); i = i + 1) {
                 errors.push(paramErrors[i])
             }
         }
-        
+
         if (schema.query) {
             queryErrors = this.validateObject(req.query, schema.query, "query")
             for (i = 0; i < queryErrors.length(); i = i + 1) {
                 errors.push(queryErrors[i])
             }
         }
-        
+
         if (schema.headers) {
             headerErrors = this.validateObject(req.headers, schema.headers, "headers")
             for (i = 0; i < headerErrors.length(); i = i + 1) {
                 errors.push(headerErrors[i])
             }
         }
-        
+
         return errors
     }
 
     soul validateObject(obj, schema, path) {
         errors = []
-        
+
         for (field in schema) {
             fieldSchema = schema[field]
             value = obj[field]
-            
+
             if (fieldSchema.required && (value == null || value == null)) {
                 errors.push({
-                    field: path + "." + field,
+                    field: path + "." + field, 
                     message: "Field is required"
                 })
                 // Skip to next field
             }
-            
+
             if (value != null && fieldSchema.type) {
                 // Simplified type checking for Soul language
                 validType = true
                 if (fieldSchema.type == "string" && value.constructor.name != "String") {
                     validType = false
                     errors.push({
-                        field: path + "." + field,
+                        field: path + "." + field, 
                         message: "Must be a string"
                     })
                 }
                 if (fieldSchema.type == "number" && value.constructor.name != "Number") {
                     validType = false
                     errors.push({
-                        field: path + "." + field,
+                        field: path + "." + field, 
                         message: "Must be a number"
                     })
                 }
             }
-            
+
             if (value != null && fieldSchema.min != null && value < fieldSchema.min) {
                 errors.push({
-                    field: path + "." + field,
+                    field: path + "." + field, 
                     message: "Must be at least " + fieldSchema.min
                 })
             }
-            
+
             if (value != null && fieldSchema.max != null && value > fieldSchema.max) {
                 errors.push({
-                    field: path + "." + field,
+                    field: path + "." + field, 
                     message: "Must be at most " + fieldSchema.max
                 })
             }
-            
+
             if (value != null && fieldSchema.pattern && !fieldSchema.pattern.test(value)) {
                 errors.push({
-                    field: path + "." + field,
+                    field: path + "." + field, 
                     message: "Invalid format"
                 })
             }
         }
-        
+
         return errors
     }
 
@@ -491,25 +492,25 @@ sanctuary MiddlewareManager {
     soul static(path, options, app) {
         staticConfig = this.mergeWithDefaults("staticFiles", options)
         staticConfig.path = path
-        
+
         staticMiddleware = soul(req, res, next) {
             filePath = req.path.replace(path, "")
-            
+
             if (filePath.startsWith("/")) {
                 filePath = filePath.slice(1)
             }
-            
+
             if (!filePath && staticConfig.index) {
                 filePath = staticConfig.index
             }
-            
+
             // Static file serving logic would go here
             // For now, just pass through
             next()
         }
         this.middlewares.push({
-            path: "*",
-            handler: staticMiddleware,
+            path: "*", 
+            handler: staticMiddleware, 
             type: "middleware"
         })
         return app
@@ -518,18 +519,18 @@ sanctuary MiddlewareManager {
     // JSON body parsing middleware
     soul json(options, app) {
         jsonConfig = {
-            limit: options && options.limit ? options.limit : "10mb",
-            strict: options && options.strict ? options.strict : true,
+            limit: options && options.limit ? options.limit : "10mb", 
+            strict: options && options.strict ? options.strict : true, 
             type: options && options.type ? options.type : "application/json"
         }
-        
+
         jsonMiddleware = soul(req, res, next) {
             console.log("🔍 [JSON MIDDLEWARE] Processing request: " + req.method + " " + req.path)
-            
+
             // Only parse JSON for POST, PUT, PATCH requests
             if (req.method == "POST" || req.method == "PUT" || req.method == "PATCH") {
                 console.log("🔍 [JSON MIDDLEWARE] Request method requires body parsing")
-                
+
                 // Check content type with multiple header name variations
                 contentType = ""
                 if (req.headers) {
@@ -544,31 +545,31 @@ sanctuary MiddlewareManager {
                 }
                 console.log("🔍 [JSON MIDDLEWARE] Content-Type: '" + contentType + "'")
                 console.log("🔍 [JSON MIDDLEWARE] All headers: " + req.headers)
-                
+
                 // More flexible content type checking
                 isJsonContent = false
                 if (contentType) {
                     lowerContentType = contentType.toLowerCase()
                     isJsonContent = lowerContentType.includes("application/json") || 
-                                   lowerContentType.includes("json") ||
-                                   lowerContentType == "application/json"
+                    lowerContentType.includes("json") || 
+                    lowerContentType == "application/json"
                 }
                 console.log("🔍 [JSON MIDDLEWARE] Is JSON content: " + isJsonContent)
-                
+
                 if (isJsonContent) {
                     console.log("🔍 [JSON MIDDLEWARE] JSON content type detected, parsing body...")
-                    
+
                     // Read raw body and parse as JSON
                     if (req.body) {
                         console.log("🔍 [JSON MIDDLEWARE] Raw body: " + req.body)
                         try {
-                            req.json = JSON.parse(req.body)
+                            req.json = json.parse(req.body)
                             console.log("🔍 [JSON MIDDLEWARE] Successfully parsed JSON")
-                            console.log("🔍 [JSON MIDDLEWARE] Parsed data keys: " + Object.keys(req.json).join(", "))
+                            // console.log("🔍 [JSON MIDDLEWARE] Parsed data keys: " + Object.keys(req.json).join(", "))
                         } catch (parseError) {
                             console.log("❌ [JSON MIDDLEWARE] JSON parse error: " + parseError)
                             return res.status(400).json({
-                                error: "Bad Request",
+                                error: "Bad Request", 
                                 message: "Invalid JSON in request body"
                             })
                         }
@@ -584,13 +585,13 @@ sanctuary MiddlewareManager {
                 console.log("🔍 [JSON MIDDLEWARE] GET/HEAD/OPTIONS request, no body parsing needed")
                 req.json = null
             }
-            
+
             next()
         }
-        
+
         this.middlewares.push({
-            path: "*",
-            handler: jsonMiddleware,
+            path: "*", 
+            handler: jsonMiddleware, 
             type: "middleware"
         })
         return app
@@ -599,10 +600,10 @@ sanctuary MiddlewareManager {
     // URL-encoded body parsing middleware
     soul urlencoded(options, app) {
         urlencodedConfig = {
-            extended: options && options.extended ? options.extended : true,
+            extended: options && options.extended ? options.extended : true, 
             limit: options && options.limit ? options.limit : "10mb"
         }
-        
+
         urlencodedMiddleware = soul(req, res, next) {
             // Only parse for POST, PUT, PATCH requests
             if (req.method == "POST" || req.method == "PUT" || req.method == "PATCH") {
@@ -611,10 +612,10 @@ sanctuary MiddlewareManager {
                 if (req.headers && req.headers["content-type"]) {
                     contentType = req.headers["content-type"]
                 }
-                
+
                 if (contentType.includes("application/x-www-form-urlencoded")) {
                     console.log("🔍 [URLENCODED MIDDLEWARE] URL-encoded content type detected")
-                    
+
                     // Parse URL-encoded body
                     if (req.body) {
                         try {
@@ -623,7 +624,7 @@ sanctuary MiddlewareManager {
                         } catch (parseError) {
                             console.log("❌ [URLENCODED MIDDLEWARE] Parse error: " + parseError)
                             return res.status(400).json({
-                                error: "Bad Request",
+                                error: "Bad Request", 
                                 message: "Invalid form data"
                             })
                         }
@@ -636,23 +637,23 @@ sanctuary MiddlewareManager {
             } else {
                 req.form = null
             }
-            
+
             next()
         }
-        
+
         this.middlewares.push({
-            path: "*",
-            handler: urlencodedMiddleware,
+            path: "*", 
+            handler: urlencodedMiddleware, 
             type: "middleware"
         })
         return app
     }
-    
+
     // Helper function to parse URL-encoded data
     soul parseUrlEncoded(body) {
         result = {}
         pairs = body.split("&")
-        
+
         for (i = 0; i < pairs.length(); i = i + 1) {
             if (pairs[i] && pairs[i].length() > 0) {
                 pair = pairs[i].split("=")
@@ -663,19 +664,19 @@ sanctuary MiddlewareManager {
                 }
             }
         }
-        
+
         return result
     }
-    
+
     // Simple URL decoding
     soul urlDecode(str) {
         if (!str) {
             return ""
         }
-        
+
         // Replace + with spaces
         decoded = str.replace("+", " ")
-        
+
         // Basic percent decoding (simplified)
         decoded = decoded.replace("%20", " ")
         decoded = decoded.replace("%21", "!")
@@ -700,7 +701,7 @@ sanctuary MiddlewareManager {
         decoded = decoded.replace("%3E", ">")
         decoded = decoded.replace("%3F", "?")
         decoded = decoded.replace("%40", "@")
-        
+
         return decoded
     }
 

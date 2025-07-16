@@ -3,339 +3,359 @@
 
 // Validation Plugin Class
 sanctuary ValidationPlugin {
-    soul constructor() {
+
+    soul __genesis__() {
         this.rules = {}
         this.schemas = {}
         this.messages = {
-            required: "This field is required",
-            string: "Must be a string",
-            number: "Must be a number",
-            boolean: "Must be a boolean",
-            array: "Must be an array",
-            object: "Must be an object",
-            email: "Must be a valid email address",
-            url: "Must be a valid URL",
-            min: "Must be at least {min}",
-            max: "Must be at most {max}",
-            minLength: "Must be at least {min} characters",
-            maxLength: "Must be at most {max} characters",
-            pattern: "Invalid format",
-            enum: "Must be one of: {values}",
-            unique: "Must be unique",
+            required: "This field is required", 
+            string: "Must be a string", 
+            number: "Must be a number", 
+            boolean: "Must be a boolean", 
+            array: "Must be an array", 
+            object: "Must be an object", 
+            email: "Must be a valid email address", 
+            url: "Must be a valid URL", 
+            min: "Must be at least {min}", 
+            max: "Must be at most {max}", 
+            minLength: "Must be at least {min} characters", 
+            maxLength: "Must be at most {max} characters", 
+            pattern: "Invalid format", 
+            enum: "Must be one of: {values}", 
+            unique: "Must be unique", 
             custom: "Validation failed"
         }
-        
+
         this.setupDefaultRules()
     }
-    
+
     // Install plugin
     soul install(app, options) {
         app.validators = this
-        
+
         // Add validation middleware factory
         app.validate = soul(schema) {
             return this.createValidationMiddleware(schema)
         }
-        
+
         // Add schema registration
         app.schema = soul(name, schema) {
             this.registerSchema(name, schema)
         }
-        
+
         // Add custom rule registration
         app.rule = soul(name, rule) {
             this.addRule(name, rule)
         }
     }
-    
+
     // Setup default validation rules
     soul setupDefaultRules() {
         this.rules.required = soul(value, rule) {
-            return value != null && value != undefined && value != ""
+            return value != null
         }
-        
+
         this.rules.string = soul(value, rule) {
-            return typeof value == "string"
+            return type(value) == "string"
         }
-        
+
         this.rules.number = soul(value, rule) {
-            return typeof value == "number" && !isNaN(value)
+            return type(value) == "number"
         }
-        
+
         this.rules.boolean = soul(value, rule) {
-            return typeof value == "boolean"
+            return type(value) == "boolean"
         }
-        
+
         this.rules.array = soul(value, rule) {
-            return Array.isArray(value)
+            return utils.isArray(value)
         }
-        
+
         this.rules.object = soul(value, rule) {
-            return typeof value == "object" && value != null && !Array.isArray(value)
+            return type(value) == "map" && value != null
         }
-        
+
         this.rules.email = soul(value, rule) {
-            if (typeof value != "string") return false
-            emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-            return emailRegex.test(value)
+            if (type(value) != "string") return false
+            return regexp.test("^[^\s@]+@[^\s@]+\.[^\s@]+$", value)
         }
-        
+
         this.rules.url = soul(value, rule) {
-            if (typeof value != "string") return false
-            try {
-                new URL(value)
-                return true
-            } catch {
-                return false
-            }
+            if (type(value) != "string") return false
+            return url.isValid(value)
         }
-        
+
         this.rules.min = soul(value, rule) {
-            if (typeof value == "number") {
+            if (type(value) == "number") {
                 return value >= rule.min
             }
             return false
         }
-        
+
         this.rules.max = soul(value, rule) {
-            if (typeof value == "number") {
+            if (type(value) == "number") {
                 return value <= rule.max
             }
             return false
         }
-        
+
         this.rules.minLength = soul(value, rule) {
-            if (typeof value == "string" or Array.isArray(value)) {
+            if (type(value) == "string" || utils.isArray(value)) {
                 return value.length >= rule.minLength
             }
             return false
         }
-        
+
         this.rules.maxLength = soul(value, rule) {
-            if (typeof value == "string" or Array.isArray(value)) {
+            if (type(value) == "string" || utils.isArray(value)) {
                 return value.length <= rule.maxLength
             }
             return false
         }
-        
+
         this.rules.pattern = soul(value, rule) {
-            if (typeof value == "string") {
-                return rule.pattern.test(value)
+            if (type(value) == "string") {
+                return regexp.test(rule.pattern, value)
             }
             return false
         }
-        
+
         this.rules.enum = soul(value, rule) {
             return rule.values.includes(value)
         }
-        
+
         this.rules.unique = soul(value, rule) {
-            if (Array.isArray(value)) {
-                return new Set(value).size == value.length
+            if (utils.isArray(value)) {
+                // Check for duplicates manually since Soul doesn't have Set
+                seen = {}
+                for (i = 0; i < value.length; i++) {
+                    item = value[i]
+                    key = "" + item
+                    if (seen[key]) {
+                        return false
+                    }
+                    seen[key] = true
+                }
+                return true
             }
             return true
         }
-        
+
         this.rules.custom = soul(value, rule) {
             return rule.validator(value)
         }
     }
-    
+
     // Add custom validation rule
     soul addRule(name, rule) {
         this.rules[name] = rule
     }
-    
+
     // Register validation schema
     soul registerSchema(name, schema) {
         this.schemas[name] = schema
     }
-    
+
     // Get registered schema
     soul getSchema(name) {
         return this.schemas[name]
     }
-    
+
     // Create validation middleware
     soul createValidationMiddleware(schema) {
         return soul(req, res, next) {
             errors = this.validate(req, schema)
-            
+
             if (errors.length > 0) {
                 return res.status(400).json({
-                    error: "Validation Error",
-                    message: "Request validation failed",
+                    error: "Validation Error", 
+                    message: "Request validation failed", 
                     details: errors
                 })
             }
-            
+
             next()
         }
     }
-    
+
     // Main validation function
     soul validate(req, schema) {
         errors = []
-        
+
         // Validate body
         if (schema.body) {
-            bodyErrors = this.validateObject(req.body or {}, schema.body, "body")
-            errors.push(...bodyErrors)
+            bodyErrors = this.validateObject(req.body || {}, schema.body, "body")
+            for (error in bodyErrors) {
+                errors.push(error)
+            }
         }
-        
+
         // Validate params
         if (schema.params) {
-            paramErrors = this.validateObject(req.params or {}, schema.params, "params")
-            errors.push(...paramErrors)
+            paramErrors = this.validateObject(req.params || {}, schema.params, "params")
+            for (error in paramErrors) {
+                errors.push(error)
+            }
         }
-        
+
         // Validate query
         if (schema.query) {
-            queryErrors = this.validateObject(req.query or {}, schema.query, "query")
-            errors.push(...queryErrors)
+            queryErrors = this.validateObject(req.query || {}, schema.query, "query")
+            for (error in queryErrors) {
+                errors.push(error)
+            }
         }
-        
+
         // Validate headers
         if (schema.headers) {
-            headerErrors = this.validateObject(req.headers or {}, schema.headers, "headers")
-            errors.push(...headerErrors)
+            headerErrors = this.validateObject(req.headers || {}, schema.headers, "headers")
+            for (error in headerErrors) {
+                errors.push(error)
+            }
         }
-        
+
         return errors
     }
-    
+
     // Validate object against schema
     soul validateObject(obj, schema, path) {
         errors = []
-        
+
         for (field in schema) {
             fieldSchema = schema[field]
             value = obj[field]
             fieldPath = path + "." + field
-            
+
             // Handle schema references
-            if (fieldSchema.$ref) {
-                referencedSchema = this.getSchema(fieldSchema.$ref)
+            if (fieldSchema["$ref"]) {
+                referencedSchema = this.getSchema(fieldSchema["$ref"])
                 if (referencedSchema) {
                     fieldSchema = referencedSchema
                 }
             }
-            
+
             // Validate field
             fieldErrors = this.validateField(value, fieldSchema, fieldPath)
-            errors.push(...fieldErrors)
+            for (error in fieldErrors) {
+                errors.push(error)
+            }
         }
-        
+
         return errors
     }
-    
+
     // Validate individual field
     soul validateField(value, schema, path) {
         errors = []
-        
+
         // Required check
         if (schema.required) {
             if (!this.rules.required(value, schema)) {
                 errors.push({
-                    field: path,
-                    rule: "required",
-                    message: this.formatMessage("required", schema),
+                    field: path, 
+                    rule: "required", 
+                    message: this.formatMessage("required", schema), 
                     value: value
                 })
                 return errors // Skip other validations if required fails
             }
         }
-        
+
         // Skip validation if value is null/undefined and not required
-        if (value == null or value == undefined) {
+        if (!value) {
             return errors
         }
-        
+
         // Type validation
         if (schema.type) {
             if (!this.rules[schema.type](value, schema)) {
                 errors.push({
-                    field: path,
-                    rule: "type",
-                    message: this.formatMessage(schema.type, schema),
+                    field: path, 
+                    rule: "type", 
+                    message: this.formatMessage(schema.type, schema), 
                     value: value
                 })
                 return errors // Skip other validations if type fails
             }
         }
-        
+
         // Apply other rules
         for (ruleName in schema) {
-            if (ruleName == "required" or ruleName == "type") continue
-            
+            if (ruleName == "required" || ruleName == "type") continue
+
             if (this.rules[ruleName]) {
                 if (!this.rules[ruleName](value, schema)) {
                     errors.push({
-                        field: path,
-                        rule: ruleName,
-                        message: this.formatMessage(ruleName, schema),
+                        field: path, 
+                        rule: ruleName, 
+                        message: this.formatMessage(ruleName, schema), 
                         value: value
                     })
                 }
             }
         }
-        
+
         // Nested object validation
         if (schema.type == "object" && schema.properties) {
             nestedErrors = this.validateObject(value, schema.properties, path)
-            errors.push(...nestedErrors)
+            for (error in nestedErrors) {
+                errors.push(error)
+            }
         }
-        
+
         // Array validation
         if (schema.type == "array" && schema.items) {
             for (i = 0; i < value.length; i++) {
                 itemErrors = this.validateField(value[i], schema.items, path + "[" + i + "]")
-                errors.push(...itemErrors)
+                for (error in itemErrors) {
+                    errors.push(error)
+                }
             }
         }
-        
+
         return errors
     }
-    
+
     // Format validation message
     soul formatMessage(rule, schema) {
         message = this.messages[rule] or this.messages.custom
-        
+
         // Replace placeholders
-        message = message.replace("{min}", schema.min or schema.minLength)
-        message = message.replace("{max}", schema.max or schema.maxLength)
-        message = message.replace("{values}", (schema.values or []).join(", "))
-        
+        message = message.replace("{min}", schema.min || schema.minLength)
+        message = message.replace("{max}", schema.max || schema.maxLength)
+        values = schema.values || []
+        message = message.replace("{values}", values.join(", "))
+
         return message
     }
-    
+
     // Custom message setter
     soul setMessage(rule, message) {
         this.messages[rule] = message
     }
-    
+
     // Batch validation
     soul validateBatch(items, schema) {
         results = []
-        
+
         for (i = 0; i < items.length; i++) {
             errors = this.validateField(items[i], schema, "[" + i + "]")
             results.push({
-                index: i,
-                item: items[i],
-                valid: errors.length == 0,
+                index: i, 
+                item: items[i], 
+                valid: errors.length == 0, 
                 errors: errors
             })
         }
-        
+
         return results
     }
-    
+
     // Conditional validation
     soul when(condition, schema) {
         return {
-            condition: condition,
-            schema: schema,
+            condition: condition, 
+            schema: schema, 
             validate: soul(value, context) {
                 if (condition(value, context)) {
                     return this.validateField(value, schema, "conditional")
@@ -344,53 +364,48 @@ sanctuary ValidationPlugin {
             }
         }
     }
-    
+
     // Async validation support
-    soul async validateAsync(req, schema) {
-        return new Promise(soul(resolve, reject) {
-            try {
-                errors = this.validate(req, schema)
-                resolve(errors)
-            } catch (error) {
-                reject(error)
-            }
-        })
+    async soul validateAsync(req, schema) {
+        // In Soul, async functions return promises automatically
+        errors = this.validate(req, schema)
+        return errors
     }
 }
 
 // Common validation schemas
-ValidationSchemas = {
-    user: {
-        body: {
-            name: { required: true, type: "string", minLength: 2, maxLength: 50 },
-            email: { required: true, type: "string", email: true },
-            age: { type: "number", min: 0, max: 120 },
-            role: { type: "string", enum: { values: ["admin", "user", "guest"] } }
+    ValidationSchemas = {
+    "user": {
+        "body": {
+            "name": { "required": true, "type": "string", "minLength": 2, "maxLength": 50 }, 
+            "email": { "required": true, "type": "string", "email": true }, 
+            "age": { "type": "number", "min": 0, "max": 120 }, 
+            "role": { "type": "string", "enum": { "values": ["admin", "user", "guest"] } }
         }
-    },
-    
-    pagination: {
-        query: {
-            page: { type: "number", min: 1 },
-            limit: { type: "number", min: 1, max: 100 },
-            sort: { type: "string" },
-            order: { type: "string", enum: { values: ["asc", "desc"] } }
+    }, 
+
+    "pagination": {
+        "query": {
+            "page": { "type": "number", "min": 1 }, 
+            "limit": { "type": "number", "min": 1, "max": 100 }, 
+            "sort": { "type": "string" }, 
+            "order": { "type": "string", "enum": { "values": ["asc", "desc"] } }
         }
-    },
-    
-    login: {
-        body: {
-            email: { required: true, type: "string", email: true },
-            password: { required: true, type: "string", minLength: 6 }
+    }, 
+
+    "login": {
+        "body": {
+            "email": { "required": true, "type": "string", "email": true }, 
+            "password": { "required": true, "type": "string", "minLength": 6 }
         }
-    },
-    
-    apiKey: {
-        headers: {
-            "x-api-key": { required: true, type: "string", minLength: 32 }
+    }, 
+
+    "apiKey": {
+        "headers": {
+            "x-api-key": { "required": true, "type": "string", "minLength": 32 }
         }
     }
 }
 
 // Export validation plugin
-export { ValidationPlugin, ValidationSchemas }
+    export { ValidationPlugin, ValidationSchemas }
