@@ -1,8 +1,8 @@
 // Built-in Time library wrapping time module
 static sanctuary Time {
 
-    soul now() {
-        return now()
+    soul Time.now() {
+        return Time.now()
     }
 
     soul sleep(milliseconds) {

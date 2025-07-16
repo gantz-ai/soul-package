@@ -1,8 +1,8 @@
 // HtmlRenderer - Simple HTML template rendering engine for Jet Framework
 // Basic template interpolation and layouts using os, filepath, and template modules
 
-
 static sanctuary HtmlRenderer {
+
     soul __genesis__() {
         this.viewsPath = "views"
         this.defaultLayout = "layout"
@@ -11,18 +11,18 @@ static sanctuary HtmlRenderer {
         this.helpers = {}
         this.templateExtension = ".html"
     }
-    
+
     // Configuration methods
     soul setViewsPath(path) {
         this.viewsPath = path
         return this
     }
-    
+
     soul setDefaultLayout(layout) {
         this.defaultLayout = layout
         return this
     }
-    
+
     soul enableCache(enable) {
         this.cacheEnabled = enable
         if (!enable) {
@@ -30,7 +30,7 @@ static sanctuary HtmlRenderer {
         }
         return this
     }
-    
+
     // Template helper registration
     soul helper(name, helperFunction) {
         this.helpers[name] = helperFunction
@@ -42,60 +42,56 @@ static sanctuary HtmlRenderer {
         if (!data) {
             data = {}
         }
-        
+
         return data
     }
-    
+
     // Helper method to replace all occurrences of a string
     soul replaceAll(text, search, replacement) {
         if (!text || !search) {
             return text
         }
-        
+
         result = text
         while (result.includes(search)) {
             result = result.replace(search, replacement)
         }
         return result
     }
-    
+
     // Read template file using os module
     soul readTemplate(templatePath) {
         // Only use cache if templatePath is a string (not an array)
-        cacheKey = templatePath + ""  // Convert to string safely
-        
+        cacheKey = templatePath + "" // Convert to string safely
+
         // Check cache first
         if (this.cacheEnabled && this.cache[cacheKey]) {
             return this.cache[cacheKey]
         }
-        
+
         try {
-            // Construct full path using filepath.join
+            // Construct full path using Path.join
             // Force add .html extension since the conditional logic doesn't work in Soul
-            fullPath = filepath.join(this.viewsPath, templatePath + ".html")
-            
+            fullPath = Path.join(this.viewsPath, templatePath + ".html")
+
             // Check if file exists
-            if (!os.exists(fullPath)) {
+            if (!Process.exists(fullPath)) {
                 throw "Template file not found: " + fullPath
             }
-            
-            // Read file content using os.readfile
-            content = os.readfile(fullPath)
-            
+
+            // Read file content using Process.readfile
+            content = Process.readfile(fullPath)
+
             // Cache the content using string key
             if (this.cacheEnabled) {
                 this.cache[cacheKey] = content
             }
-            
+
             return content
         } catch (error) {
             return "<p>Template not found: " + templatePath + "</p>"
         }
     }
-    
-    
-
-    
 
     // Main render method using template module
     soul render(templateConfig, data, options) {
@@ -103,29 +99,29 @@ static sanctuary HtmlRenderer {
             if (!templateConfig) {
                 return this.renderError("No template configuration provided")
             }
-            
+
             // Extract configuration
             mainTemplate = templateConfig.template
             layoutName = templateConfig.layout
             partialNames = templateConfig.partials
-            
+
             // Create config for the renderWithFiles function
             templateFileConfig = {
-                basePath: this.viewsPath,
-                mainTemplate: mainTemplate,
-                layout: layoutName,
+                basePath: this.viewsPath, 
+                mainTemplate: mainTemplate, 
+                layout: layoutName, 
                 partials: partialNames
             }
-            
+
             // Check if the template file exists
-            templatePath = os.joinPath(this.viewsPath, mainTemplate + ".html")
-            if (!os.exists(templatePath)) {
+            templatePath = Process.joinPath(this.viewsPath, mainTemplate + ".html")
+            if (!Process.exists(templatePath)) {
                 throw "Template file not found: " + templatePath
             }
-            
+
             // Use the renderWithFiles function
-            result = template.renderWithFiles(templateFileConfig, data || {})
-            
+            result = Template.renderWithFiles(templateFileConfig, data || {})
+
             return result
         } catch (error) {
             return this.renderError("Template rendering failed: " + error)
@@ -139,10 +135,10 @@ static sanctuary HtmlRenderer {
             if (!layoutName.endsWith(this.templateExtension)) {
                 layoutPath = layoutPath + this.templateExtension
             }
-            
+
             layoutTemplate = this.readTemplate(layoutPath)
             if (layoutTemplate) {
-                return template.renderWithLayout(layoutTemplate, content, data || {})
+                return Template.renderWithLayout(layoutTemplate, content, data || {})
             } else {
                 return content
             }
@@ -155,75 +151,75 @@ static sanctuary HtmlRenderer {
     soul renderError(message) {
         return "<h1>Template Error</h1><p>" + message + "</p>"
     }
-    
+
     // Render string template using template module
     soul renderString(templateString, data) {
         if (!data) {
             data = {}
         }
-        
+
         try {
             processedTemplate = this.processIncludes(templateString, data)
-            return template.render(processedTemplate, data)
+            return Template.render(processedTemplate, data)
         } catch (error) {
             return "<p>Template Error: " + error + "</p>"
         }
     }
-    
+
     // Clear template cache
     soul clearCache() {
         this.cache = {}
         return this
     }
-    
+
     // Get template file statistics
     soul getTemplateStats(templatePath) {
         try {
-            fullPath = filepath.join(this.viewsPath, templatePath)
+            fullPath = Path.join(this.viewsPath, templatePath)
             if (!templatePath.endsWith(this.templateExtension)) {
                 fullPath = fullPath + this.templateExtension
             }
-            
-            if (os.exists(fullPath)) {
-                stats = os.stat(fullPath)
+
+            if (Process.exists(fullPath)) {
+                stats = Process.stat(fullPath)
                 return {
-                    exists: true,
-                    size: stats.size,
-                    modified: stats.modtime,
+                    exists: true, 
+                    size: stats.size, 
+                    modified: stats.modtime, 
                     path: fullPath
                 }
             } else {
                 return {
-                    exists: false,
+                    exists: false, 
                     path: fullPath
                 }
             }
         } catch (error) {
             return {
-                exists: false,
-                error: error,
+                exists: false, 
+                error: error, 
                 path: templatePath
             }
         }
     }
-    
+
     // List available templates
     soul listTemplates() {
         try {
-            if (!os.exists(this.viewsPath)) {
+            if (!Process.exists(this.viewsPath)) {
                 return []
             }
-            
-            files = os.readdir(this.viewsPath)
+
+            files = Process.readdir(this.viewsPath)
             templates = []
-            
+
             for (i = 0; i < files.length(); i++) {
                 entry = files[i]
                 if (!entry.isdir && entry.name.endsWith(this.templateExtension)) {
                     templates.push(entry.name)
                 }
             }
-            
+
             return templates
         } catch (error) {
             return []

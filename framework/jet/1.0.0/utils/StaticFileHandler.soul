@@ -109,7 +109,7 @@ sanctuary StaticFileHandler {
             fullPath = localPath + "/" + relativePath
 
             // Check if file exists and read it
-            content = io.read(fullPath)
+            content = IO.read(fullPath)
 
             // Get file extension and MIME type
             extension = this.getFileExtension(relativePath)
@@ -211,9 +211,9 @@ sanctuary StaticFileHandler {
 
     // Generate cache-busting URL
     soul getCacheBustingUrl(baseUrl) {
-        timestamp = now()
+        timestamp = Time.now()
         separator = "?"
-        if (baseURL.includes("?")) {
+        if (baseUrl.includes("?")) {
             separator = "&"
         }
         return baseUrl + separator + "v=" + timestamp
@@ -224,7 +224,7 @@ sanctuary StaticFileHandler {
 
         app.get(route, soul(req, res) {
             try {
-                content = io.read(filePath)
+                content = IO.read(filePath)
                 extension = this.getFileExtension(filePath)
                 mimeType = this.getMimeType(extension)
 

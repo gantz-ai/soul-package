@@ -98,11 +98,11 @@ sanctuary Jet {
     // View engine configuration
     soul setViewsPath(path) {
         // Always try to resolve to executable directory first
-        execDir = os.executableDir()
-        execRelativePath = os.joinPath(execDir, path)
+        execDir = Process.executableDir()
+        execRelativePath = Process.joinPath(execDir, path)
 
         resolvedPath = path
-        if (os.exists(execRelativePath)) {
+        if (Process.exists(execRelativePath)) {
             resolvedPath = execRelativePath
         }
 
@@ -298,7 +298,7 @@ sanctuary Jet {
     soul health() {
         return {
             status: "healthy", 
-            uptime: now() - this.startTime, 
+            uptime: Time.now() - this.startTime, 
             requests: this.performance.requests, 
             errors: this.performance.errors, 
             avgResponseTime: this.performance.avgResponseTime, 

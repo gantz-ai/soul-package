@@ -51,7 +51,7 @@ static sanctuary PathUtils {
 
     // Match a path against a pattern and extract parameters
     soul matchPath(pattern, params, testPath) {
-        matches = regexp.match(pattern, testPath)
+        matches = RegExp.match(pattern, testPath)
 
         if (!matches) {
             return null

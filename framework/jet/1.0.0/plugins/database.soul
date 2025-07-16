@@ -290,8 +290,8 @@ sanctuary DatabaseModel {
 
         // Add timestamps
         if (this.timestamps) {
-            data.created_at = utils.now()
-            data.updated_at = utils.now()
+            data.created_at = Time.now()
+            data.updated_at = Time.now()
         }
 
         // Generate SQL
@@ -340,7 +340,7 @@ sanctuary DatabaseModel {
     soul update(conditions, data) {
         // Add updated timestamp
         if (this.timestamps) {
-            data.updated_at = utils.now()
+            data.updated_at = Time.now()
         }
 
         // Build update query
@@ -375,7 +375,7 @@ sanctuary DatabaseModel {
     // Delete records
     soul delete(conditions) {
         if (this.softDelete) {
-            return this.update(conditions, { deleted_at: utils.now() })
+            return this.update(conditions, { deleted_at: Time.now() })
         }
 
         whereClause = this.buildWhereClause(conditions)
@@ -661,4 +661,4 @@ sanctuary QueryBuilder {
 }
 
 // Export database plugin
-    export { DatabasePlugin, DatabaseModel, QueryBuilder }
+export { DatabasePlugin, DatabaseModel, QueryBuilder }

@@ -12,41 +12,41 @@ sanctuary ResourceManager {
     soul register(directories) {
         try {
             // Get current working directory (project source location)
-            projectDir = os.cwd()
+            projectDir = Process.cwd()
             this.app.logger.info("Project directory: " + projectDir)
 
             // Adjust project directory if we're running from the Soul root
             if (projectDir.endsWith("soul-lang")) {
-                projectDir = os.joinPath(projectDir, "sample_projects", "jet-server")
+                projectDir = Process.joinPath(projectDir, "sample_projects", "jet-server")
                 this.app.logger.info("Adjusted project directory: " + projectDir)
             }
 
             // Get executable directory (temporary location)
-            execDir = os.executableDir()
+            execDir = Process.executableDir()
             this.app.logger.info("Executable directory: " + execDir)
 
             for (dirName in directories) {
-                destPath = os.joinPath(execDir, dirName)
-                sourcePath = os.joinPath(projectDir, dirName)
+                destPath = Process.joinPath(execDir, dirName)
+                sourcePath = Process.joinPath(projectDir, dirName)
 
                 this.app.logger.debug("Checking directory: " + dirName)
 
-                if (os.exists(destPath)) {
+                if (Process.exists(destPath)) {
                     this.app.logger.info("Removing old directory: " + destPath)
                     try {
-                        os.removeDir(destPath)
+                        Process.removeDir(destPath)
                         this.app.logger.info("Directory removed successfully")
                     } catch (error) {
                         this.app.logger.error("Error removing directory: " + error)
                     }
                 }
 
-                if (os.exists(sourcePath)) {
+                if (Process.exists(sourcePath)) {
                     this.app.logger.info("Copying " + dirName + ": " + sourcePath + " -> " + destPath)
                     try {
-                        os.copyDir(sourcePath, destPath)
+                        Process.copyDir(sourcePath, destPath)
                         this.app.logger.info(dirName + " copied successfully")
-                        if (!os.exists(destPath)) {
+                        if (!Process.exists(destPath)) {
                             this.app.logger.error(dirName + " destination does not exist after copy!")
                         }
                     } catch (error) {
@@ -158,7 +158,7 @@ sanctuary ResourceManager {
             Console.log("📄 Serving: " + requestPath + " -> " + fullPath)
 
             // Read file
-            content = io.read(fullPath)
+            content = IO.read(fullPath)
 
             // Get file extension and MIME type
             extension = this.getFileExtension(relativePath)

@@ -71,7 +71,7 @@ sanctuary Router {
     soul createRouteBuilder(routeConfig) {
         return {
             middleware: soul(middlewares) {
-                if (utils.isArray(middlewares)) {
+                if (Utils.isArray(middlewares)) {
                     for (i = 0; i < middlewares.length(); i = i + 1) {
                         routeConfig.middleware.push(middlewares[i])
                     }
@@ -101,7 +101,7 @@ sanctuary Router {
                 return this
             }, 
             tags: soul(tags) {
-                if (utils.isArray(tags)) {
+                if (Utils.isArray(tags)) {
                     for (i = 0; i < tags.length(); i = i + 1) {
                         routeConfig.tags.push(tags[i])
                     }
@@ -138,7 +138,7 @@ sanctuary Router {
             regexPattern = regexPattern.replace("*", "(.*)")
         }
 
-        // Handle parameter placeholders like :id (simplified)
+        // Handle parameter placeholders like : id (simplified)
         if (regexPattern.includes(":")) {
             // Simple replacement for common patterns
             regexPattern = regexPattern.replace(":id", "([^/]+)")
@@ -260,7 +260,7 @@ sanctuary Router {
     soul getRoutes() {
         allRoutes = []
 
-        // Simplified route introspection without for...in loops
+        // Simplified route introspection without for ...in loops
         // Get routes for each HTTP method manually
         if (this.routes["GET"]) {
             getRoutes = this.routes["GET"]
@@ -268,11 +268,11 @@ sanctuary Router {
                 route = getRoutes[i]
                 allRoutes.push({
                     method: "GET", 
-                    path: route.path, 
-                    description: route.description, 
-                    tags: route.tags, 
-                    deprecated: route.deprecated, 
-                    version: route.version
+                        path: route.path, 
+                        description: route.description, 
+                        tags: route.tags, 
+                        deprecated: route.deprecated, 
+                        version: route.version
                 })
             }
         }
@@ -283,11 +283,11 @@ sanctuary Router {
                 route = postRoutes[i]
                 allRoutes.push({
                     method: "POST", 
-                    path: route.path, 
-                    description: route.description, 
-                    tags: route.tags, 
-                    deprecated: route.deprecated, 
-                    version: route.version
+                        path: route.path, 
+                        description: route.description, 
+                        tags: route.tags, 
+                        deprecated: route.deprecated, 
+                        version: route.version
                 })
             }
         }

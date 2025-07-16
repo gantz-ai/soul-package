@@ -68,7 +68,7 @@ sanctuary ValidationPlugin {
         }
 
         this.rules.array = soul(value, rule) {
-            return utils.isArray(value)
+            return Utils.isArray(value)
         }
 
         this.rules.object = soul(value, rule) {
@@ -77,7 +77,7 @@ sanctuary ValidationPlugin {
 
         this.rules.email = soul(value, rule) {
             if (type(value) != "string") return false
-            return regexp.test("^[^\s@]+@[^\s@]+\.[^\s@]+$", value)
+            return RegExp.test("^[^\s@]+@[^\s@]+\.[^\s@]+$", value)
         }
 
         this.rules.url = soul(value, rule) {
@@ -100,14 +100,14 @@ sanctuary ValidationPlugin {
         }
 
         this.rules.minLength = soul(value, rule) {
-            if (type(value) == "string" || utils.isArray(value)) {
+            if (type(value) == "string" || Utils.isArray(value)) {
                 return value.length >= rule.minLength
             }
             return false
         }
 
         this.rules.maxLength = soul(value, rule) {
-            if (type(value) == "string" || utils.isArray(value)) {
+            if (type(value) == "string" || Utils.isArray(value)) {
                 return value.length <= rule.maxLength
             }
             return false
@@ -115,7 +115,7 @@ sanctuary ValidationPlugin {
 
         this.rules.pattern = soul(value, rule) {
             if (type(value) == "string") {
-                return regexp.test(rule.pattern, value)
+                return RegExp.test(rule.pattern, value)
             }
             return false
         }
@@ -125,7 +125,7 @@ sanctuary ValidationPlugin {
         }
 
         this.rules.unique = soul(value, rule) {
-            if (utils.isArray(value)) {
+            if (Utils.isArray(value)) {
                 // Check for duplicates manually since Soul doesn't have Set
                 seen = {}
                 for (i = 0; i < value.length; i++) {

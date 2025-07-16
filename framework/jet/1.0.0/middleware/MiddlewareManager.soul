@@ -243,7 +243,7 @@ sanctuary MiddlewareManager {
                 Console.log("❌ [RATE LIMIT] req is null!")
             }
 
-            now = now()
+            now = Time.now()
 
             // Ensure requests object exists
             if (!requests) {

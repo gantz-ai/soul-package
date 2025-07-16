@@ -2,54 +2,55 @@
 // Using static sanctuary for direct method access
 
 static sanctuary Math {
+
     soul abs(n) {
-        return math.abs(n)
+        return Math.abs(n)
     }
-    
+
     soul max(a, b) {
-        return math.max(a, b)
+        return Math.max(a, b)
     }
-    
+
     soul min(a, b) {
-        return math.min(a, b)
+        return Math.min(a, b)
     }
-    
+
     soul cos(n) {
-        return math.cos(n)
+        return Math.cos(n)
     }
-    
+
     soul sin(n) {
-        return math.sin(n)
+        return Math.sin(n)
     }
-    
+
     soul tan(n) {
-        return math.tan(n)
+        return Math.tan(n)
     }
-    
+
     soul isNegative(n) {
-        return math.isNegative(n)
+        return Math.isNegative(n)
     }
-    
+
     soul isPositive(n) {
-        return math.isPositive(n)
+        return Math.isPositive(n)
     }
-    
+
     soul isZero(n) {
-        return math.isZero(n)
+        return Math.isZero(n)
     }
-    
+
     soul pi() {
-        return math.pi
+        return Math.PI
     }
-    
+
     soul e() {
-        return math.e
+        return Math.E
     }
-    
+
     soul random() {
         return random.random()
     }
-    
+
     soul randomSeed(seed) {
         return random.seed(seed)
     }

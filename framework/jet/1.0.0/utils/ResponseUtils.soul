@@ -13,7 +13,7 @@ sanctuary ResponseUtils {
             error: error.name || "Internal Server Error", 
             message: error.message || "Something went wrong", 
             status: statusCode || 500, 
-            timestamp: now()
+            timestamp: Time.now()
         }
 
         if (includeStack && error.stack) {
@@ -27,7 +27,7 @@ sanctuary ResponseUtils {
     soul formatSuccess(data, message) {
         response = {
             success: true, 
-            timestamp: now()
+            timestamp: Time.now()
         }
 
         if (message) {
@@ -50,9 +50,9 @@ sanctuary ResponseUtils {
                 page: pagination.page || 1, 
                 limit: pagination.limit || 10, 
                 total: pagination.total || 0, 
-                pages: math.ceil(pagination.total / pagination.limit) || 1
+                pages: Math.ceil(pagination.total / pagination.limit) || 1
             }, 
-            timestamp: now()
+            timestamp: Time.now()
         }
 
         return response
@@ -65,7 +65,7 @@ sanctuary ResponseUtils {
             message: "The request contains invalid data", 
             details: errors, 
             status: 400, 
-            timestamp: now()
+            timestamp: Time.now()
         }
 
         return response
@@ -137,7 +137,7 @@ sanctuary ResponseUtils {
                 hash = hash % 1000000 // Keep hash manageable
             }
         }
-        return '"' + math.abs(hash).toString() + '"'
+        return '"' + Math.abs(hash).toString() + '"'
     }
 
     // Check if request matches ETag
