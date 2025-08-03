@@ -7,6 +7,6 @@
   "license": "MIT",
   "keywords": ["console", "logging", "debug", "output"],
   "exports": {
-    ".": "./console.soul"
+    ".": "./index.soul"
   }
 }
