@@ -37,77 +37,8 @@
           "main": "index.soul",
           "dependencies": {},
           "license": "MIT",
-          "description": "Basic console operations"
-        }
-      },
-      "latest": "1.0.0"
-    },
-    "file": {
-      "category": "io",
-      "description": "Soul file library",
-      "keywords": ["file", "library"],
-      "versions": {
-        "1.0.0": {
-          "path": "io/file/1.0.0/",
-          "main": "index.soul",
-          "dependencies": {},
-          "license": "MIT"
-        }
-      },
-      "latest": "1.0.0"
-    },
-    "http": {
-      "category": "network",
-      "description": "Soul http library",
-      "keywords": ["http", "library"],
-      "versions": {
-        "1.0.0": {
-          "path": "network/http/1.0.0/",
-          "main": "index.soul",
-          "dependencies": {},
-          "license": "MIT"
-        }
-      },
-      "latest": "1.0.0"
-    },
-    "json": {
-      "category": "data",
-      "description": "Soul json library",
-      "keywords": ["json", "library"],
-      "versions": {
-        "1.0.0": {
-          "path": "data/json/1.0.0/",
-          "main": "index.soul",
-          "dependencies": {},
-          "license": "MIT"
-        }
-      },
-      "latest": "1.0.0"
-    },
-    "math": {
-      "category": "utility",
-      "description": "Soul math library",
-      "keywords": ["math", "library"],
-      "versions": {
-        "1.0.0": {
-          "path": "utility/math/1.0.0/",
-          "main": "index.soul",
-          "dependencies": {},
-          "license": "MIT"
-        }
-      },
-      "latest": "1.0.0"
-    },
-    "time": {
-      "category": "utility",
-      "description": "Soul time library",
-      "keywords": ["time", "library"],
-      "versions": {
-        "1.0.0": {
-          "path": "utility/time/1.0.0/",
-          "main": "index.soul",
-          "dependencies": {},
-          "license": "MIT"
+          "description": "Basic console operations",
+          "hash": "6acda3852ee3d38a5160e7e7fa327076"
         }
       },
       "latest": "1.0.0"
@@ -145,7 +76,8 @@
             "Service Registration and Dependency Injection",
             "Modular Component Design"
           ],
-          "examples": ["examples/server.soul"]
+          "examples": ["examples/server.soul"],
+          "hash": "8ed3f2d0140ef7db941adc26e88e8419"
         }
       },
       "latest": "1.0.0"
