@@ -2,7 +2,7 @@
   "name": "console",
   "version": "1.0.0",
   "description": "Console module for Soul - provides console output functionality similar to JavaScript",
-  "main": "console.soul",
+  "main": "index.soul",
   "author": "Soul Language",
   "license": "MIT",
   "keywords": ["console", "logging", "debug", "output"],
