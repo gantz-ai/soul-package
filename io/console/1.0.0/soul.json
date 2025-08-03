@@ -5,8 +5,5 @@
   "main": "index.soul",
   "author": "Soul Language",
   "license": "MIT",
-  "keywords": ["console", "logging", "debug", "output"],
-  "exports": {
-    ".": "./index.soul"
-  }
+  "keywords": ["console", "logging", "debug", "output"]
 }
