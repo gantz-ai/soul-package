@@ -6,13 +6,13 @@
       "path": "io/"
     },
     "network": {
-      "name": "Network Operations", 
+      "name": "Network Operations",
       "description": "Packages for HTTP and network communication",
       "path": "network/"
     },
     "data": {
       "name": "Data Processing",
-      "description": "Packages for data manipulation and processing", 
+      "description": "Packages for data manipulation and processing",
       "path": "data/"
     },
     "utility": {
@@ -38,25 +38,13 @@
           "dependencies": {},
           "license": "MIT",
           "description": "Basic console operations"
-        },
-        "2.0.0": {
-          "path": "io/console/2.0.0/",
-          "main": "index.soul", 
-          "dependencies": {},
-          "license": "MIT",
-          "description": "Enhanced console with color and formatting support",
-          "changelog": [
-            "Added color support with logColor, success, failure methods",
-            "Added formatted output with logFormat and table methods",
-            "Backward compatible with v1.0.0"
-          ]
         }
       },
-      "latest": "2.0.0"
+      "latest": "1.0.0"
     },
     "file": {
       "category": "io",
-      "description": "Soul file library", 
+      "description": "Soul file library",
       "keywords": ["file", "library"],
       "versions": {
         "1.0.0": {
@@ -75,7 +63,7 @@
       "versions": {
         "1.0.0": {
           "path": "network/http/1.0.0/",
-          "main": "index.soul", 
+          "main": "index.soul",
           "dependencies": {},
           "license": "MIT"
         }
@@ -127,7 +115,15 @@
     "jet": {
       "category": "framework",
       "description": "Modern web framework for Soul with MVC architecture, middleware support, and built-in security",
-      "keywords": ["web", "framework", "mvc", "middleware", "routing", "api", "server"],
+      "keywords": [
+        "web",
+        "framework",
+        "mvc",
+        "middleware",
+        "routing",
+        "api",
+        "server"
+      ],
       "versions": {
         "1.0.0": {
           "path": "framework/jet/1.0.0/",
@@ -149,9 +145,7 @@
             "Service Registration and Dependency Injection",
             "Modular Component Design"
           ],
-          "examples": [
-            "examples/server.soul"
-          ]
+          "examples": ["examples/server.soul"]
         }
       },
       "latest": "1.0.0"
