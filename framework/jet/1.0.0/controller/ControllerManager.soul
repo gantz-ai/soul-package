@@ -1,7 +1,5 @@
 // Controller Manager - Handles controller registration and execution
 
-import { Console } from "console"
-
 sanctuary ControllerManager {
 
     soul __genesis__(app) {

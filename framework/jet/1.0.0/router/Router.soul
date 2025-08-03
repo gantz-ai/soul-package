@@ -1,8 +1,6 @@
 // Router - Handles route registration and matching
 // Separated routing logic from main Jet class
 
-import { Console } from "console"
-
 sanctuary Router {
 
     soul __genesis__() {

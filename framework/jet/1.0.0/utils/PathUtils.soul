@@ -123,14 +123,14 @@ static sanctuary PathUtils {
     }
 
     // Extract query parameters from URL
-    soul parseQuery(url) {
+    soul parseQuery(url_path) {
         queryParams = {}
 
-        if (!url || !URL.includes("?")) {
+        if (!url_path || !url_path.includes("?")) {
             return queryParams
         }
 
-        queryString = URL.split("?")[1]
+        queryString = url_path.split("?")[1]
         if (!queryString) {
             return queryParams
         }

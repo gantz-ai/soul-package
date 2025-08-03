@@ -1,0 +1,159 @@
+// Console module for Soul - provides console output functionality
+// Similar to JavaScript's console object
+
+// Basic logging functions
+soul log(...args) {
+    output = ""
+    for (i = 0; i < len(args); i = i + 1) {
+        if (i > 0) {
+            output = output + " "
+        }
+        output = output + args[i]
+    }
+    println(output)
+}
+
+soul info(...args) {
+    print("ℹ️  ")
+    log(...args)
+}
+
+soul warn(...args) {
+    print("⚠️  ")
+    log(...args)
+}
+
+soul error(...args) {
+    print("❌ ")
+    log(...args)
+}
+
+soul debug(...args) {
+    print("🐛 ")
+    log(...args)
+}
+
+// Formatted output
+soul dir(obj) {
+    println("📁 Object inspection:")
+    for (key in obj) {
+        println("  " + key + ": " + obj[key])
+    }
+}
+
+// Timing functions
+timers = {}
+
+soul time(label) {
+    if (!label) {
+        label = "default"
+    }
+    timers[label] = Time.now()
+}
+
+soul timeEnd(label) {
+    if (!label) {
+        label = "default"
+    }
+    
+    if (!timers[label]) {
+        error("Timer '" + label + "' does not exist")
+        return
+    }
+    
+    elapsed = Time.now() - timers[label]
+    log(label + ": " + elapsed + "ms")
+    delete(timers, label)
+}
+
+// Counting
+counters = {}
+
+soul count(label) {
+    if (!label) {
+        label = "default"  
+    }
+    
+    if (!counters[label]) {
+        counters[label] = 0
+    }
+    
+    counters[label] = counters[label] + 1
+    log(label + ": " + counters[label])
+}
+
+soul countReset(label) {
+    if (!label) {
+        label = "default"
+    }
+    counters[label] = 0
+}
+
+// Grouping (simplified version)
+soul group(label) {
+    if (label) {
+        log("▼ " + label)
+    } else {
+        log("▼ Group")
+    }
+}
+
+soul groupEnd() {
+    // In a real implementation, this would reduce indentation
+    // For now, just a visual separator
+    println("")
+}
+
+// Assertions
+soul assert(condition, message) {
+    if (!condition) {
+        if (message) {
+            error("Assertion failed: " + message)
+        } else {
+            error("Assertion failed")
+        }
+    }
+}
+
+// Table output (simplified)
+soul table(data) {
+    if (type(data) == "array") {
+        println("┌─────┬─────────────┐")
+        println("│ idx │ value       │")
+        println("├─────┼─────────────┤")
+        for (i = 0; i < len(data); i = i + 1) {
+            println("│ " + i + "   │ " + data[i] + " │")
+        }
+        println("└─────┴─────────────┘")
+    } else {
+        dir(data)
+    }
+}
+
+// Clear (just prints newlines)
+soul clear() {
+    for (i = 0; i < 50; i = i + 1) {
+        println("")
+    }
+}
+
+// Export all console functions as a namespace
+Console = {
+    "log": log,
+    "info": info,
+    "warn": warn,
+    "error": error,
+    "debug": debug,
+    "dir": dir,
+    "time": time,
+    "timeEnd": timeEnd,
+    "count": count,
+    "countReset": countReset,
+    "group": group,
+    "groupEnd": groupEnd,
+    "assert": assert,
+    "table": table,
+    "clear": clear,
+    // Alias
+    "println": log
+}

@@ -1,7 +1,6 @@
 // Core Jet Framework Class
 // Main application class with essential functionality
 
-import { Console } from "console"
 import { Router } from "../router/Router.soul"
 import { MiddlewareManager } from "../middleware/MiddlewareManager.soul"
 import { ControllerManager } from "../controller/ControllerManager.soul"

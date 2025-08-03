@@ -1,8 +1,6 @@
 // MiddlewareManager - Handles middleware registration and execution
 // Separated middleware logic from main Jet class
 
-import { Console } from "console"
-
 sanctuary MiddlewareManager {
 
     soul __genesis__() {

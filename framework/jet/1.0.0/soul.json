@@ -21,11 +21,7 @@
     "type": "git",
     "url": "https://github.com/soul-lang/packages"
   },
-  "dependencies": {
-    "console": ">=1.0.0",
-    "http": "^1.0.0",
-    "time": "^1.0.0"
-  },
+  "dependencies": {},
   "engines": {
     "soul": ">=1.0.0"
   },

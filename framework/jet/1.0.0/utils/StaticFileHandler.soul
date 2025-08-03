@@ -109,7 +109,7 @@ sanctuary StaticFileHandler {
             fullPath = localPath + "/" + relativePath
 
             // Check if file exists and read it
-            content = IO.read(fullPath)
+            content = File.read(fullPath)
 
             // Get file extension and MIME type
             extension = this.getFileExtension(relativePath)
@@ -224,7 +224,7 @@ sanctuary StaticFileHandler {
 
         app.get(route, soul(req, res) {
             try {
-                content = IO.read(filePath)
+                content = File.read(filePath)
                 extension = this.getFileExtension(filePath)
                 mimeType = this.getMimeType(extension)
 
